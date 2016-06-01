@@ -28,7 +28,7 @@ import java.io.File;
 
 import uk.co.senab.photoview.PhotoViewAttacher;
 
-public class OCRElementActivity extends AppCompatActivity {
+public class ActivityOCRElement extends AppCompatActivity {
 
 
     private static final int ROTATE_IMAGE = 1;
@@ -36,8 +36,8 @@ public class OCRElementActivity extends AppCompatActivity {
     private SectionsPagerAdapter mSectionsPagerAdapter;
     private ViewPager mViewPager;
     private OCRElement ocrElement;
-    private TextFragment textFr;
-    private ImageFragment imageFr;
+    private FragmentText textFr;
+    private FragmentImage imageFr;
     private int index;
 
     @Override
@@ -70,9 +70,9 @@ public class OCRElementActivity extends AppCompatActivity {
         // primary sections of the activity.
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
-        textFr = new TextFragment();
+        textFr = new FragmentText();
         textFr.setOcrElement(index);
-        imageFr = new ImageFragment();
+        imageFr = new FragmentImage();
         imageFr.setOcrElement(ocrElement);
 
         // Set up the ViewPager with the sections adapter.
@@ -141,7 +141,7 @@ public class OCRElementActivity extends AppCompatActivity {
         data.getInstance().getOcrElements().get(index).setProgress(0);
         data.getInstance().getOcrElements().get(index).setDate("Text parsing");
         data.getInstance().getOcrElements().get(index).setText("please wait");
-        Intent intent = new Intent(getApplicationContext(), parser.class);
+        Intent intent = new Intent(getApplicationContext(), ServiceParser.class);
         intent.putExtra("ocrelement", index);
         startService(intent);
         finish();
@@ -149,7 +149,7 @@ public class OCRElementActivity extends AppCompatActivity {
 
     private void rotateImage(){
         Toast.makeText(getApplicationContext(), "When the transformations are applied the image will be rescanned" , Toast.LENGTH_LONG).show();
-        Intent intent = new Intent(getApplicationContext(), RotationActivity.class);
+        Intent intent = new Intent(getApplicationContext(), ActivityRotation.class);
         intent.putExtra("file", data.getInstance().getOcrElements().get(index).getImageFile());
         startActivityForResult(intent, ROTATE_IMAGE);
     }

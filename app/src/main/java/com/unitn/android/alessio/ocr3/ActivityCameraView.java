@@ -29,7 +29,7 @@ import java.util.Date;
 import java.util.List;
 
 
-public class cameraView extends AppCompatActivity {
+public class ActivityCameraView extends AppCompatActivity {
 
     private static final int ROTATE_IMAGE = 2;
     private static int FOCUS_AREA_SIZE = 300;
@@ -57,8 +57,8 @@ public class cameraView extends AppCompatActivity {
 
             Bitmap bmp= BitmapFactory.decodeByteArray(dati,0,dati.length);
             mCamera.stopPreview();
-            Bitmap tmpImage=util.rotateBitmap(bmp,90);
-            pictureFile=util.saveBitmap(tmpImage,pictureFile);
+            Bitmap tmpImage= util.rotateBitmap(bmp,90);
+            pictureFile= util.saveBitmap(tmpImage,pictureFile);
             Log.v(data.getInstance().getTAG(),"Saved Image passing to activity: "+pictureFile.getAbsolutePath());
             startActivityRotate(pictureFile);
         }
@@ -68,7 +68,7 @@ public class cameraView extends AppCompatActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.camera);
+        setContentView(R.layout.activity_camera);
 
         mOrientationListener = new OrientationEventListener(this,
                 SensorManager.SENSOR_DELAY_NORMAL) {
@@ -232,7 +232,7 @@ public class cameraView extends AppCompatActivity {
     }
 
     private void startActivityRotate(File imgFile){
-        Intent intent = new Intent(getApplicationContext(), RotationActivity.class);
+        Intent intent = new Intent(getApplicationContext(), ActivityRotation.class);
         intent.putExtra("file", imgFile);
         startActivityForResult(intent, ROTATE_IMAGE);
     }

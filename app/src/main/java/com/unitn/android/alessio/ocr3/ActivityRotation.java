@@ -17,7 +17,7 @@ import com.isseiaoki.simplecropview.callback.SaveCallback;
 
 import java.io.File;
 
-public class RotationActivity extends AppCompatActivity {
+public class ActivityRotation extends AppCompatActivity {
 
     private ImageButton acceptPreview, rejectPreview, rotateLeft,rotateRight;
     private CropImageView imagePreview;
@@ -28,7 +28,7 @@ public class RotationActivity extends AppCompatActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.preview);
+        setContentView(R.layout.activity_rotate);
 
         if(savedInstanceState != null){
             file = new File(savedInstanceState.getString("file"));
@@ -97,7 +97,7 @@ public class RotationActivity extends AppCompatActivity {
     }
 
     private void startActivityRotate(File imgFile){
-        Intent intent = new Intent(getApplicationContext(), RotationActivity.class);
+        Intent intent = new Intent(getApplicationContext(), ActivityRotation.class);
         intent.putExtra("file", imgFile);
         startActivityForResult(intent, ROTATE_IMAGE);
     }

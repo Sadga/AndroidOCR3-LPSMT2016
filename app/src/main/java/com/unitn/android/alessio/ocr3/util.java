@@ -204,12 +204,10 @@ public class util {
     }
 
     public static int saveData(Context context){
-        Log.v(data.getInstance().getTAG(), "Saving "+data.getInstance().getOcrElements().size()+" elements");
         SQLiteDatabase db = context.openOrCreateDatabase("OCRElementsDB",MODE_PRIVATE,null);
         db.execSQL("DROP TABLE IF EXISTS OCRElements");
         db.execSQL("CREATE TABLE IF NOT EXISTS OCRElements(date VARCHAR,title VARCHAR, text VARCHAR, file VARCHAR, confidence INTEGER);");
         for (OCRElement ocrElement : data.getInstance().getOcrElements()){
-            Log.v(data.getInstance().getTAG(), "Saving "+ocrElement.getTitle());
             db.execSQL("INSERT INTO OCRElements VALUES('"+ocrElement.getDate()+"','"+ocrElement.getTitle()+"','"+ocrElement.getText()+"','"+ocrElement.getImageFile().getAbsolutePath()+"','"+ocrElement.getConfidence()+"');");
         }
         db.close();
@@ -229,9 +227,7 @@ public class util {
         }
         if(resultSet.getCount()>0){
             resultSet.moveToFirst();
-            Log.v(data.getInstance().getTAG(), "Restoring "+resultSet.getCount()+" elements");
             for(int i = 0; i < resultSet.getCount(); i++){
-                Log.v(data.getInstance().getTAG(), "Restoring "+resultSet.getString(1));
                 OCRElement tmp = new OCRElement();
                 tmp.setDate(resultSet.getString(0));
                 tmp.setTitle(resultSet.getString(1));

@@ -2,6 +2,7 @@ package com.unitn.android.alessio.ocr3;
 
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -17,11 +18,13 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.InputType;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -36,7 +39,7 @@ import java.util.ArrayList;
 import java.util.Date;
 
 
-public class MainActivity extends AppCompatActivity {
+public class ActivityMain extends AppCompatActivity {
 
     private static final int SELECT_PICTURE = 1;
     private static final int TAKE_PHOTO = 2;
@@ -126,10 +129,19 @@ public class MainActivity extends AppCompatActivity {
                 if(item.getDate().compareTo("Text parsing")!=0){
                     Log.v(data.getInstance().getTAG(), "item: "+item.getDate());
 
-                    Intent intent = new Intent(getApplicationContext(), OCRElementActivity.class);
+                    Intent intent = new Intent(getApplicationContext(), ActivityOCRElement.class);
                     intent.putExtra("ocrelement", position);
                     startActivity(intent);
                 }
+            }
+        });
+
+        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
+                                           int pos, long id) {
+                entryMenu(pos);
+                return true;
             }
         });
 
@@ -211,15 +223,17 @@ public class MainActivity extends AppCompatActivity {
             util.saveData(getApplicationContext());
             util.savePrefs();
         }else {
-            adapter.notifyDataSetChanged();
-            data.getInstance().setUiHandler(new Handler(){
-                @Override
-                public void handleMessage(Message msg) {
-                    if(((String)msg.obj).compareTo("Refresh") == 0){
-                        adapter.notifyDataSetChanged();
+            if(adapter != null){
+                adapter.notifyDataSetChanged();
+                data.getInstance().setUiHandler(new Handler(){
+                    @Override
+                    public void handleMessage(Message msg) {
+                        if(((String)msg.obj).compareTo("Refresh") == 0){
+                            adapter.notifyDataSetChanged();
+                        }
                     }
-                }
             });
+            }
         }
         super.onWindowFocusChanged(hasFocus);
     }
@@ -258,7 +272,7 @@ public class MainActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            Intent setting = new Intent(getApplicationContext(), SettingsActivity.class);
+            Intent setting = new Intent(getApplicationContext(), ActivitySettings.class);
             startActivity(setting);
             return true;
         }
@@ -282,6 +296,7 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(), "Impossible to init files, please chech permissions", Toast.LENGTH_LONG).show();
                     finish();
                 }
+                return;
             }
             case 2: {
                 if (grantResults.length > 0
@@ -309,6 +324,7 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(), "Impossible to init files, please chech permissions", Toast.LENGTH_LONG).show();
                     finish();
                 }
+                return;
             }
         }
     }
@@ -324,9 +340,62 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void entryMenu(int index){
+        final int position = index;
+        CharSequence elements[] = new CharSequence[] {"Delete element", "Change title", "Scan again"};
+        android.app.AlertDialog.Builder menu = new android.app.AlertDialog.Builder(this);
+        menu.setTitle("Select an action");
+        menu.setItems(elements, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                switch (which){
+                    case 0: {
+                        data.getInstance().getOcrElements().remove(position);
+                        return;
+                    }
+                    case 1: {
+                        changeTitle(position);
+                        return;
+                    }
+                    case 2: {
+                        parseElement(position);
+                        return;
+                    }
+                }
+            }
+        });
+        menu.show();
+    }
+
+    private void changeTitle(int n){
+        final int index = n;
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
+        builder.setTitle("Set a new title");
+
+        final EditText input = new EditText(this);
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        input.setText(data.getInstance().getOcrElements().get(index).getTitle());
+        builder.setView(input);
+
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                data.getInstance().getOcrElements().get(index).setTitle(input.getText().toString());
+                adapter.notifyDataSetChanged();
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        builder.show();
+    }
 
     private void startActivityCamera(){
-        Intent intent = new Intent(getApplicationContext(), cameraView.class);
+        Intent intent = new Intent(getApplicationContext(), ActivityCameraView.class);
         ActivityOptionsCompat options = ActivityOptionsCompat.
                 makeSceneTransitionAnimation(this, (View)fab, "mainFab");
         startActivityForResult(intent, TAKE_PHOTO, options.toBundle());
@@ -406,9 +475,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startActivityRotate(File imgFile){
-        Intent intent = new Intent(getApplicationContext(), RotationActivity.class);
+        Intent intent = new Intent(getApplicationContext(), ActivityRotation.class);
         intent.putExtra("file", imgFile);
         startActivityForResult(intent, ROTATE_IMAGE);
+    }
+
+    private void parseElement(int index){
+        data.getInstance().getOcrElements().get(index).setProgress(0);
+        data.getInstance().getOcrElements().get(index).setDate("Text parsing");
+        data.getInstance().getOcrElements().get(index).setText("please wait");
+        Intent intent = new Intent(getApplicationContext(), ServiceParser.class);
+        intent.putExtra("ocrelement", index);
+        startService(intent);
     }
 
     private void addAndParseElement(File img){
@@ -421,8 +499,6 @@ public class MainActivity extends AppCompatActivity {
         data.getInstance().getOcrElements().get(data.getInstance().getOcrElements().size()-1).setText("please wait");
         adapter.notifyDataSetChanged();
 
-        Intent intent = new Intent(getApplicationContext(), parser.class);
-        intent.putExtra("ocrelement", data.getInstance().getOcrElements().size()-1);
-        startService(intent);
+        parseElement(data.getInstance().getOcrElements().size()-1);
     }
 }

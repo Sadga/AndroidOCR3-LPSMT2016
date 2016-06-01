@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="fill_parent"
     android:fitsSystemWindows="true"
-    tools:context="com.unitn.android.alessio.ocr3.OCRElementActivity">
+    tools:context="com.unitn.android.alessio.ocr3.ActivityOCRElement">
 
     <android.support.design.widget.AppBarLayout
         android:id="@+id/appbar"

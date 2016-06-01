@@ -17,7 +17,7 @@ import android.widget.TextView;
 /**
  * Created by alessio on 02/05/16.
  */
-public class TextFragment extends Fragment {
+public class FragmentText extends Fragment {
 
     private OCRElement ocrElement;
     private TextView title, textView;
@@ -25,8 +25,9 @@ public class TextFragment extends Fragment {
     private ScrollView editScroll, viewScroll;
     private View rootView;
     private int index;
+    private Switch switchEdit;
 
-    public TextFragment() {
+    public FragmentText() {
     }
 
     public void setOcrElement(int index) {
@@ -37,7 +38,7 @@ public class TextFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        rootView = inflater.inflate(R.layout.text_page, container, false);
+        rootView = inflater.inflate(R.layout.fragment_text_page, container, false);
 
         title = (TextView)rootView.findViewById(R.id.titleTextView);
         title.setText(ocrElement.getTitle().compareTo("")==0?ocrElement.getDate():ocrElement.getTitle()+" conf:"+ocrElement.getConfidence()+"%");
@@ -53,7 +54,7 @@ public class TextFragment extends Fragment {
         editScroll.setVisibility(View.GONE);
         viewScroll = (ScrollView)rootView.findViewById(R.id.viewScroll);
 
-        Switch switchEdit = (Switch)rootView.findViewById(R.id.editText);
+        switchEdit = (Switch)rootView.findViewById(R.id.editText);
         switchEdit.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if(isChecked){
@@ -70,7 +71,7 @@ public class TextFragment extends Fragment {
                     AnimatorSet second = new AnimatorSet();
                     second.playTogether(show1, show2, rotate2);
 
-                    animSet.setDuration(300);
+                    animSet.setDuration(250);
                     animSet.playSequentially(first, second);
                     animSet.addListener(new Animator.AnimatorListener() {
                         @Override
@@ -91,6 +92,7 @@ public class TextFragment extends Fragment {
                             viewScroll.setVisibility(View.GONE);
                             textView.setAlpha(0);
                             viewScroll.setAlpha(0);
+                            switchEdit.setText("Save Text");
                         }
                     });
                     animSet.start();
@@ -111,7 +113,7 @@ public class TextFragment extends Fragment {
                     AnimatorSet second = new AnimatorSet();
                     second.playTogether(show1, show2, rotate2);
 
-                    animSet.setDuration(300);
+                    animSet.setDuration(250);
                     animSet.playSequentially(first, second);
                     animSet.addListener(new Animator.AnimatorListener() {
                         @Override
@@ -132,6 +134,7 @@ public class TextFragment extends Fragment {
                             editScroll.setVisibility(View.GONE);
                             textEdit.setAlpha(0);
                             editScroll.setAlpha(0);
+                            switchEdit.setText("Edit Text");
                         }
                     });
                     animSet.start();

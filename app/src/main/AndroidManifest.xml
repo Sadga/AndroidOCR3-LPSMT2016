@@ -16,38 +16,38 @@
         android:theme="@style/AppTheme"
         android:hardwareAccelerated="true">
 
-        <activity android:name=".SettingsActivity"
+        <activity android:name=".ActivitySettings"
             android:label="Settings"
-            android:parentActivityName=".MainActivity" >
+            android:parentActivityName=".ActivityMain" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MainActivity" />
+                android:value=".ActivityMain" />
         </activity>
 
         <activity
-            android:name=".OCRElementActivity"
+            android:name=".ActivityOCRElement"
             android:label="OCR3"
             android:theme="@style/AppTheme.NoActionBar"
-            android:parentActivityName=".MainActivity" >
+            android:parentActivityName=".ActivityMain" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MainActivity" />
+                android:value=".ActivityMain" />
         </activity>
 
         <activity
-            android:name=".RotationActivity"
+            android:name=".ActivityRotation"
             android:label="OCR3">
         </activity>
 
         <activity
-            android:name=".cameraView"
+            android:name=".ActivityCameraView"
             android:label="Camera"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme">
         </activity>
 
         <activity
-            android:name=".MainActivity"
+            android:name=".ActivityMain"
             android:label="@string/app_name"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme">
@@ -57,7 +57,7 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".parser" />
+        <service android:name=".ServiceParser" />
 
     </application>
 

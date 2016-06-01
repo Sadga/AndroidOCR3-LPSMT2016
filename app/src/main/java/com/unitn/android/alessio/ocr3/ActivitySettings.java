@@ -14,7 +14,7 @@ import java.util.ArrayList;
 /**
  * Created by alessio on 10/05/16.
  */
-public class SettingsActivity extends AppCompatActivity {
+public class ActivitySettings extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

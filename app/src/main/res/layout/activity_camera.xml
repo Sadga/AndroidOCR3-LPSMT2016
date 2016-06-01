@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    tools:context="com.unitn.android.alessio.ocr3.cameraView"
+    tools:context="com.unitn.android.alessio.ocr3.ActivityCameraView"
     android:id="@+id/outerFrame">
 
 

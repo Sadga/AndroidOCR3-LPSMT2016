@@ -13,11 +13,11 @@ import java.util.Date;
 /**
  * Created by alessio on 28/04/16.
  */
-public class parser extends IntentService {
+public class ServiceParser extends IntentService {
 
     int index;
 
-    public parser() {
+    public ServiceParser() {
         super("Parser");
     }
 
@@ -43,29 +43,29 @@ public class parser extends IntentService {
         data.getInstance().getUiHandler().sendMessage(msg);
         System.gc();
     }
-}
 
-class progress implements TessBaseAPI.ProgressNotifier{
-    OCRElement elem;
-    int progre;
+    class progress implements TessBaseAPI.ProgressNotifier{
+        OCRElement elem;
+        int progre;
 
-    public progress(OCRElement element){
-        this.elem = element;
-        progre = 1;
-    }
-
-    @Override
-    public void onProgressValues(TessBaseAPI.ProgressValues progressValues) {
-        float progr = progressValues.getPercent();
-        progr = (((progr-30f)/70f)*101f)+1f;
-        Log.v(data.getInstance().getTAG(), "progresso: "+(int)progr);
-        elem.setProgress((int)progr);
-        if(progr-progre>=1 || progr==100) {
-            progre = (int)progr;
-            Message msg = data.getInstance().getUiHandler().obtainMessage();
-            msg.obj = "Refresh";
-            data.getInstance().getUiHandler().sendMessage(msg);
+        public progress(OCRElement element){
+            this.elem = element;
+            progre = 1;
         }
 
+        @Override
+        public void onProgressValues(TessBaseAPI.ProgressValues progressValues) {
+            float progr = progressValues.getPercent();
+            progr = (((progr-30f)/70f)*101f)+1f;
+            Log.v(data.getInstance().getTAG(), "progresso: "+(int)progr);
+            elem.setProgress((int)progr);
+            if(progr-progre>=1 || progr==100) {
+                progre = (int)progr;
+                Message msg = data.getInstance().getUiHandler().obtainMessage();
+                msg.obj = "Refresh";
+                data.getInstance().getUiHandler().sendMessage(msg);
+            }
+
+        }
     }
 }

@@ -12,13 +12,13 @@ import android.widget.ImageView;
 /**
  * Created by alessio on 02/05/16.
  */
-public class ImageFragment extends Fragment {
+public class FragmentImage extends Fragment {
 
     private OCRElement ocrElement;
     private ImageView imageV;
     private int imageVisualized = 0;
 
-    public ImageFragment() {
+    public FragmentImage() {
     }
 
     public void setOcrElement(OCRElement ocrElement) {
@@ -28,7 +28,7 @@ public class ImageFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.image_page, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_image_page, container, false);
 
         new Thread(new Runnable() {
             @Override
