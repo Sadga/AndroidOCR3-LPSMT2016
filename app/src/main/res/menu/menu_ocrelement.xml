@@ -1,0 +1,20 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.unitn.android.alessio.ocr3.OCRElementActivity">
+    <item
+        android:id="@+id/change_title"
+        android:orderInCategory="100"
+        android:title="Modify title"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/image_rotate"
+        android:orderInCategory="100"
+        android:title="Rotate the image"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/rescan"
+        android:orderInCategory="100"
+        android:title="Rescan the image"
+        app:showAsAction="never" />
+</menu>
