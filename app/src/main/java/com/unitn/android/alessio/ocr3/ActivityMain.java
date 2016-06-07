@@ -15,19 +15,24 @@ import android.os.Handler;
 import android.os.Message;
 import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.ActivityOptionsCompat;
+import android.support.v4.util.Pair;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.InputType;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.EditText;
-import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.github.lzyzsd.circleprogress.DonutProgress;
 import com.orangegangsters.github.swipyrefreshlayout.library.SwipyRefreshLayout;
 import com.orangegangsters.github.swipyrefreshlayout.library.SwipyRefreshLayoutDirection;
 
@@ -59,6 +64,7 @@ public class ActivityMain extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
 
+
         if (!OpenCVLoader.initDebug()) {// opencv INIT
             data.getInstance().setUsingOpenCV(false);
             Log.e(this.getClass().getSimpleName(), "  OpenCVLoader.initDebug(), not working.");
@@ -68,7 +74,7 @@ public class ActivityMain extends AppCompatActivity {
         }
 
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.settingsToolbar);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.mainToolbar);
         setSupportActionBar(toolbar);
 
         data.getInstance().setAsset(getAssets());
@@ -92,6 +98,9 @@ public class ActivityMain extends AppCompatActivity {
                     finish();
                 }
             }
+            if(getApplicationContext().checkSelfPermission("android.permission.CAMERA") == PackageManager.PERMISSION_GRANTED){
+                cameraOk = true;
+            }
         }else{
             if(util.initFiles() != 0){//inizializzazione file base (se esistono ritorna positivo)
                 Toast.makeText(getApplicationContext(), "Impossible to init files, please check permissions", Toast.LENGTH_LONG);
@@ -99,51 +108,28 @@ public class ActivityMain extends AppCompatActivity {
             }
             cameraOk = true;
         }
+
+
         //ANDROID 6 PERMISSION MANAGEMENT
 
 
-        ListView listView = (ListView)findViewById(R.id.listView);
+        RecyclerView listView = (RecyclerView)findViewById(R.id.listView);
+        listView.setLayoutManager(new LinearLayoutManager(this));
+        listView.setItemAnimator(new DefaultItemAnimator());
 
         if(savedInstanceState != null){ //TODO: RESTORE DATA SAVED
             //Altre cose da ripristinare savedinstance
             adapter = data.getInstance().getAdapter();
-            listView.setAdapter(adapter);
         }else if(util.restoreData(getApplicationContext()) == 0){
-            adapter = new customAdapter(data.getInstance().getOcrElements(), getApplicationContext());
-            listView.setAdapter(adapter);
+            adapter = new customAdapter(data.getInstance().getOcrElements(), getApplicationContext(), clickListener(), longClickListerer());
         }else{
             data.getInstance().setOcrElements(new ArrayList<OCRElement>());
-            adapter = new customAdapter(data.getInstance().getOcrElements(), getApplicationContext());
-            listView.setAdapter(adapter);
+            adapter = new customAdapter(data.getInstance().getOcrElements(), getApplicationContext(), clickListener(), longClickListerer());
         }
 
+        listView.setAdapter(adapter);
         data.getInstance().setAdapter(adapter);
 
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
-
-            @Override
-            public void onItemClick(AdapterView<?> adapter, View v, int position, long id){
-
-                OCRElement item = (OCRElement)adapter.getItemAtPosition(position);
-
-                if(item.getDate().compareTo("Text parsing")!=0){
-                    Log.v(data.getInstance().getTAG(), "item: "+item.getDate());
-
-                    Intent intent = new Intent(getApplicationContext(), ActivityOCRElement.class);
-                    intent.putExtra("ocrelement", position);
-                    startActivity(intent);
-                }
-            }
-        });
-
-        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
-                                           int pos, long id) {
-                entryMenu(pos);
-                return true;
-            }
-        });
 
         mRefreshLayout = (SwipyRefreshLayout)findViewById(R.id.swipyrefreshlayout);
         mRefreshLayout.setOnRefreshListener(new SwipyRefreshLayout.OnRefreshListener() {
@@ -184,37 +170,33 @@ public class ActivityMain extends AppCompatActivity {
 
     }
 
-    //todo REMOVE
-    private void addElement(){
-        tempElem = new OCRElement();
-        tempElem.setImageFile(new File("/storage/emulated/0/ocr/images/IMG_20160530_155223.jpg"));
-        Log.v(data.getInstance().getTAG(), tempElem.getImageFile().getAbsolutePath());
-        tempElem.setDate("Titolo di Prova");
-        tempElem.setText("Normative\n" +
-                "\n" +
-                "Invia feedback; sul dispositivo\n" +
-                "Numero modello\n" +
-                "\n" +
-                "Nexus 5\n" +
-                "\n" +
-                "Veraîpne di Android\n" +
-                "\n" +
-                "M\n" +
-                "\n" +
-                "Versînne; banda di b”ase\n" +
-                "M8974A»2.0…50.226\n" +
-                "\n" +
-                "veîsîpne Kernel\n" +
-                "3.4.0-gb87733d\n" +
-                "android-bui|d@wp ee24.hot.corpgoogle.com #1\n" +
-                "Thu May 21 0511 9113 UTC 2015\n" +
-                "Numero build\n" +
-                "\n" +
-                "Mp2440");
-        tempElem.setProgress(100);
-        tempElem.setConfidence(87);
-        data.getInstance().getOcrElements().add(tempElem);
-        tempElem = null;
+    private customAdapter.OnItemClickListener clickListener(){
+        return new customAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(OCRElement element, int pos, RoundedImageView thumbnail, TextView title, DonutProgress percent) {
+                if(element.getDate().compareTo("Text parsing")!=0){
+                    Log.v(data.getInstance().getTAG(), "item: "+element.getDate()+", Transition name:"+thumbnail.getTransitionName());
+                    Intent intent = new Intent(getApplicationContext(), ActivityOCRElement.class);
+                    intent.putExtra("ocrelement", pos);
+
+                    ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(ActivityMain.this,
+                            new Pair<View, String>((View)thumbnail, thumbnail.getTransitionName()),
+                            new Pair<View, String>((View)title, title.getTransitionName()),
+                            new Pair<View, String>((View)percent, percent.getTransitionName())
+                    );
+                    ActivityCompat.startActivity(ActivityMain.this, intent, options.toBundle());
+                }
+            }
+        };
+    }
+
+    private customAdapter.OnItemLongClickListener longClickListerer(){
+        return new customAdapter.OnItemLongClickListener() {
+            @Override
+            public void onItemLongClick(OCRElement element, int pos) {
+                entryMenu(pos);
+            }
+        };
     }
 
     @Override
@@ -224,7 +206,7 @@ public class ActivityMain extends AppCompatActivity {
             util.savePrefs();
         }else {
             if(adapter != null){
-                adapter.notifyDataSetChanged();
+                //adapter.notifyDataSetChanged();
                 data.getInstance().setUiHandler(new Handler(){
                     @Override
                     public void handleMessage(Message msg) {
@@ -351,6 +333,8 @@ public class ActivityMain extends AppCompatActivity {
                 switch (which){
                     case 0: {
                         data.getInstance().getOcrElements().remove(position);
+                        adapter.notifyDataSetChanged();
+                        //adapter.remove(position);
                         return;
                     }
                     case 1: {
@@ -417,7 +401,7 @@ public class ActivityMain extends AppCompatActivity {
                             Bitmap image = util.openImageFile(imgFile);
                             imgFile = util.saveBitmap(image, getOutputMediaFile());//copy image in my folder
                         } else {
-                            Toast.makeText(getApplicationContext(), "Image in app folder", Toast.LENGTH_SHORT).show();
+                            //Toast.makeText(getApplicationContext(), "Image in app folder", Toast.LENGTH_SHORT).show();
                         }
                         startActivityRotate(imgFile);
                     } else {
@@ -494,6 +478,7 @@ public class ActivityMain extends AppCompatActivity {
         Log.v(data.getInstance().getTAG(), img.getAbsolutePath());
         tempElem.setImageFile(img);
         data.getInstance().getOcrElements().add(tempElem);
+        //adapter.add(tempElem);
         tempElem = null;
         data.getInstance().getOcrElements().get(data.getInstance().getOcrElements().size()-1).setDate("Text parsing");
         data.getInstance().getOcrElements().get(data.getInstance().getOcrElements().size()-1).setText("please wait");

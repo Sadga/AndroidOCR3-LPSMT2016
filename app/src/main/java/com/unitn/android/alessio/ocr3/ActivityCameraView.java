@@ -42,7 +42,6 @@ public class ActivityCameraView extends AppCompatActivity {
     private boolean buttonChanging = false;
     private CameraPreview mPreview;
     private boolean flashActive = false;
-    private int width,height;
     private RelativeLayout previewFrame;
 
     private Camera.PictureCallback mPicture = new Camera.PictureCallback(){

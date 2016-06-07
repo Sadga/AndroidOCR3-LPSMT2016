@@ -32,7 +32,6 @@ public class RoundedImageView extends ImageView {
 
     @Override
     protected void onDraw(Canvas canvas) {
-
         Drawable drawable = getDrawable();
 
         if (drawable == null) {

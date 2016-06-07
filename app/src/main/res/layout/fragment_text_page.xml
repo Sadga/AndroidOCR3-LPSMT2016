@@ -35,7 +35,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/viewScroll"
-        android:layout_below="@+id/titleTextView">
+        android:layout_below="@+id/titleTextView"
+        android:transitionName="elemTitle">
 
         <TextView
             android:layout_width="match_parent"

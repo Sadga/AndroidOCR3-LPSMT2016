@@ -1,87 +1,77 @@
 package com.unitn.android.alessio.ocr3;
 
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
-import android.support.design.widget.TabLayout;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.ViewPager;
+import android.os.PersistableBundle;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.InputType;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
-import android.widget.ImageView;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.File;
+import com.github.lzyzsd.circleprogress.DonutProgress;
 
-import uk.co.senab.photoview.PhotoViewAttacher;
+import java.io.File;
 
 public class ActivityOCRElement extends AppCompatActivity {
 
 
     private static final int ROTATE_IMAGE = 1;
-    private PhotoViewAttacher mAttacher;
-    private SectionsPagerAdapter mSectionsPagerAdapter;
-    private ViewPager mViewPager;
     private OCRElement ocrElement;
     private FragmentText textFr;
     private FragmentImage imageFr;
+    private FrameLayout container;
+    private DonutProgress progress;
     private int index;
+    private RoundedImageView thumbnail;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ocrelement);
-
-        data.getInstance().setUiHandler(new Handler(){
-            @Override
-            public void handleMessage(Message msg) {
-                if(((String)msg.obj).compareTo("SetImage") == 0){
-                    final ImageView image = (ImageView)findViewById(R.id.imageView);
-                    image.setImageBitmap(util.resizeBmp(util.optimizeImage(ocrElement.getImageFullRes()),ocrElement.getImageFullRes().getWidth()/2, ocrElement.getImageFullRes().getHeight()/2));
-                    mAttacher = new PhotoViewAttacher(image);
-                }else if(((String)msg.obj).compareTo("updateMAttacher") == 0){
-                    mAttacher.update();
-                }
-            }
-
-        });
-
-        index = getIntent().getExtras().getInt("ocrelement");
-        ocrElement = data.getInstance().getOcrElements().get(index);
-
-        Toolbar toolbar = (Toolbar) findViewById(R.id.settingsToolbar);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.ocrElementToolbar);
         setSupportActionBar(toolbar);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        // Create the adapter that will return a fragment for each of the three
-        // primary sections of the activity.
-        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
+        if (savedInstanceState != null) {
+            ocrElement = savedInstanceState.getParcelable("ocrElement");    
+        }else{
+            index = getIntent().getExtras().getInt("ocrelement");
+            ocrElement = data.getInstance().getOcrElements().get(index);
+        }
+
+        thumbnail = (RoundedImageView)findViewById(R.id.thumbnail);
+        thumbnail.setImageBitmap(ocrElement.getThumbnail());
+        thumbnail.setTransitionName("imageTransition"+index);
+
+        progress = (DonutProgress)findViewById(R.id.circle_progress);
+        progress.setTransitionName("progressTransition"+index);
+
+        container = (FrameLayout) findViewById(R.id.container);
         textFr = new FragmentText();
         textFr.setOcrElement(index);
+
+        if(savedInstanceState == null){
+            getSupportFragmentManager().beginTransaction()
+                    .add(R.id.container, textFr).commit();
+        }
+
         imageFr = new FragmentImage();
         imageFr.setOcrElement(ocrElement);
+    }
 
-        // Set up the ViewPager with the sections adapter.
-        mViewPager = (ViewPager) findViewById(R.id.container);
-        mViewPager.setAdapter(mSectionsPagerAdapter);
-
-        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
-        tabLayout.setupWithViewPager(mViewPager);
-
+    @Override
+    public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
+        outState.putParcelable("ocrElement", ocrElement);
+        super.onSaveInstanceState(outState, outPersistentState);
     }
 
     @Override
@@ -106,6 +96,12 @@ public class ActivityOCRElement extends AppCompatActivity {
     }
 
     @Override
+    public void onBackPressed() {
+        ActivityCompat.finishAfterTransition(this);
+        //super.onBackPressed();
+    }
+
+    @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         if(!hasFocus){
             ocrElement.deleteImageFullRes();
@@ -116,8 +112,7 @@ public class ActivityOCRElement extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_ocrelement, menu); //todo: Gestione voci menu
+        getMenuInflater().inflate(R.menu.menu_ocrelement, menu);
         return true;
     }
 
@@ -179,44 +174,5 @@ public class ActivityOCRElement extends AppCompatActivity {
         });
 
         builder.show();
-    }
-
-    public class SectionsPagerAdapter extends FragmentPagerAdapter {
-
-        public SectionsPagerAdapter(FragmentManager fm) {
-            super(fm);
-        }
-
-        @Override
-        public Fragment getItem(int position) {
-            switch (position) {
-                case 0:
-                    return textFr;
-                case 1:
-                    View view = getCurrentFocus();
-                    if (view != null) {
-                        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-                        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-                    }
-                    return imageFr;
-            }
-            return null;
-        }
-
-        @Override
-        public int getCount() {
-            return 2;
-        }
-
-        @Override
-        public CharSequence getPageTitle(int position) {
-            switch (position) {
-                case 0:
-                    return "Text";
-                case 1:
-                    return "Photo";
-            }
-            return null;
-        }
     }
 }

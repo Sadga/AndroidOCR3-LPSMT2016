@@ -36,12 +36,19 @@ public class FragmentText extends Fragment {
     }
 
     @Override
+    public void onDestroy() {
+        switchEdit.setChecked(false);
+        super.onDestroy();
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.fragment_text_page, container, false);
 
         title = (TextView)rootView.findViewById(R.id.titleTextView);
         title.setText(ocrElement.getTitle().compareTo("")==0?ocrElement.getDate():ocrElement.getTitle()+" conf:"+ocrElement.getConfidence()+"%");
+        title.setTransitionName("titleTransition"+index);
 
         textEdit = (EditText)rootView.findViewById(R.id.recognizedTextEdit);
         textEdit.setText(ocrElement.getText());
@@ -49,6 +56,7 @@ public class FragmentText extends Fragment {
 
         textView = (TextView)rootView.findViewById(R.id.recognizedTextView);
         textView.setText(ocrElement.getText());
+        textView.setTransitionName("textTransition"+index);
 
         editScroll = (ScrollView)rootView.findViewById(R.id.editScroll);
         editScroll.setVisibility(View.GONE);

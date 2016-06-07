@@ -13,7 +13,7 @@
         android:id="@+id/topBar">
 
         <android.support.v7.widget.Toolbar
-            android:id="@+id/settingsToolbar"
+            android:id="@+id/mainToolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
