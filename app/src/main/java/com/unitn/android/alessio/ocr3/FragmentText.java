@@ -69,7 +69,7 @@ public class FragmentText extends Fragment {
                     AnimatorSet first = new AnimatorSet();
                     first.playTogether(rotate1, hide1, hide2);
                     AnimatorSet second = new AnimatorSet();
-                    second.playTogether(show1, show2, rotate2);
+                    second.playTogether(show1, rotate2);
 
                     animSet.setDuration(250);
                     animSet.playSequentially(first, second);
@@ -90,7 +90,7 @@ public class FragmentText extends Fragment {
                         public void onAnimationEnd(Animator animation) {
                             textView.setVisibility(View.GONE);
                             viewScroll.setVisibility(View.GONE);
-                            textView.setAlpha(0);
+                            //textView.setAlpha(0);
                             viewScroll.setAlpha(0);
                             switchEdit.setText("Save Text");
                         }
@@ -109,9 +109,9 @@ public class FragmentText extends Fragment {
                     AnimatorSet animSet = new AnimatorSet();
 
                     AnimatorSet first = new AnimatorSet();
-                    first.playTogether(rotate1, hide1, hide2);
+                    first.playTogether(rotate1, hide1);
                     AnimatorSet second = new AnimatorSet();
-                    second.playTogether(show1, show2, rotate2);
+                    second.playTogether(show1,rotate2);
 
                     animSet.setDuration(250);
                     animSet.playSequentially(first, second);
