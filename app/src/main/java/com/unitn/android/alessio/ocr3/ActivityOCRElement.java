@@ -11,8 +11,10 @@ import android.support.v7.widget.Toolbar;
 import android.text.InputType;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -31,6 +33,8 @@ public class ActivityOCRElement extends AppCompatActivity {
     private DonutProgress progress;
     private int index;
     private RoundedImageView thumbnail;
+    private ImageView fullImage;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +55,15 @@ public class ActivityOCRElement extends AppCompatActivity {
         thumbnail = (RoundedImageView)findViewById(R.id.thumbnail);
         thumbnail.setImageBitmap(ocrElement.getThumbnail());
         thumbnail.setTransitionName("imageTransition"+index);
+
+        fullImage = (ImageView)findViewById(R.id.maxImageView);
+        fullImage.setImageBitmap(ocrElement.getImageFullRes());
+
+        thumbnail.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+            }
+        });
 
         progress = (DonutProgress)findViewById(R.id.circle_progress);
         progress.setTransitionName("progressTransition"+index);

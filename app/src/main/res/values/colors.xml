@@ -7,4 +7,5 @@
     <color name="abc_secondary_text_material_light">#363636</color>
     <color name="windowBackground">#FFF</color>
     <color name="overlay">#67000000</color>
+    <color name="NeroTrasparente">#be000000</color>
 </resources>

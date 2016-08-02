@@ -35,4 +35,7 @@ dependencies {
     compile 'com.github.chrisbanes:PhotoView:1.2.6'
     compile 'com.isseiaoki:simplecropview:1.1.4'
     compile 'com.github.orangegangsters:swipy:1.2.3@aar'
+    compile ('com.github.ozodrukh:CircularReveal:2.0.1@aar') {
+        transitive = true;
+    }
 }

@@ -49,5 +49,20 @@
         android:transitionName="image"
         android:layout_gravity="bottom|right" />
 
+    <io.codetail.widget.RevealFrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="?attr/actionBarSize">
+
+        <!-- Put more views here if you want, it's stock frame layout  -->
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/maxImageView"
+            android:background="@color/NeroTrasparente" />
+
+    </io.codetail.widget.RevealFrameLayout>
+
 
 </FrameLayout>
