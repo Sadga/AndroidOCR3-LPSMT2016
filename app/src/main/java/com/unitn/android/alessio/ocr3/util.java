@@ -241,6 +241,7 @@ public class util {
             db.close();
             return 0;
         }else {
+            db.close();
             return 1;
         }
     }

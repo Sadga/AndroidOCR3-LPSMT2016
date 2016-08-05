@@ -1,35 +1,90 @@
 package com.unitn.android.alessio.ocr3;
 
+import android.Manifest;
+import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Rect;
+import android.graphics.ImageFormat;
+import android.graphics.Matrix;
+import android.graphics.RectF;
+import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.hardware.SensorManager;
-import android.os.AsyncTask;
+import android.hardware.camera2.CameraAccessException;
+import android.hardware.camera2.CameraCaptureSession;
+import android.hardware.camera2.CameraCharacteristics;
+import android.hardware.camera2.CameraDevice;
+import android.hardware.camera2.CameraManager;
+import android.hardware.camera2.CameraMetadata;
+import android.hardware.camera2.CaptureRequest;
+import android.hardware.camera2.TotalCaptureResult;
+import android.hardware.camera2.params.StreamConfigurationMap;
+import android.media.Image;
+import android.media.ImageReader;
 import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.MotionEvent;
+import android.util.Size;
+import android.util.SparseIntArray;
 import android.view.OrientationEventListener;
+import android.view.Surface;
+import android.view.TextureView;
 import android.view.View;
+import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import org.opencv.android.CameraBridgeViewBase;
+
 import java.io.File;
-import java.text.SimpleDateFormat;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.Arrays;
 import java.util.List;
+
+/*private void initCamera(Camera cam){
+
+    photoHeight = 0;
+    photoWidth = 0;
+    float base = (16f / 9f);
+    for (Camera.Size size : params.getSupportedPictureSizes()) {
+        float format = ((float) size.width / (float) size.height);
+        if (format == base) {
+            Log.v(data.getInstance().getTAG(), "possible photo size: " + size.width + "X" + size.height + " [" + (format == base ? "16:9" : "4:3") + "]");
+            if (Math.abs(size.width - 4128) < Math.abs(photoWidth - 4128)) {
+                photoWidth = size.width;
+                photoHeight = size.height;
+            }
+        }
+    }
+
+}*/
 
 
 public class ActivityCameraView extends AppCompatActivity {
+
+    private final static String TAG = "Camera2testJ";
+    private Size mPreviewSize;
+
+    private TextureView mTextureView;
+    private CameraDevice mCameraDevice;
+    private CaptureRequest.Builder mPreviewBuilder;
+    private CameraCaptureSession mPreviewSession;
 
     private static final int ROTATE_IMAGE = 2;
     private static int FOCUS_AREA_SIZE = 300;
@@ -42,44 +97,55 @@ public class ActivityCameraView extends AppCompatActivity {
     private boolean buttonChanging = false;
     private CameraPreview mPreview;
     private boolean flashActive = false;
-    private int width,height;
+    private int width, height;
     private RelativeLayout previewFrame;
+    private CameraBridgeViewBase mOpenCvCameraView;
+    private int orientamento;
 
-    private Camera.PictureCallback mPicture = new Camera.PictureCallback(){
+    private Button mBtnShot;
 
-        @Override
-        public void onPictureTaken(byte[]dati,Camera camera){
-            File pictureFile=getOutputMediaFile();
-            if(pictureFile==null){
-                Log.d(data.getInstance().getTAG(),"Errore nel salvataggio dell' immagine");
-                return;
-            }
+    private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
 
-            Bitmap bmp= BitmapFactory.decodeByteArray(dati,0,dati.length);
-            mCamera.stopPreview();
-            Bitmap tmpImage= util.rotateBitmap(bmp,90);
-            pictureFile= util.saveBitmap(tmpImage,pictureFile);
-            Log.v(data.getInstance().getTAG(),"Saved Image passing to activity: "+pictureFile.getAbsolutePath());
-            startActivityRotate(pictureFile);
-        }
-    };
+    static {
+        ORIENTATIONS.append(Surface.ROTATION_0, 0);//90
+        ORIENTATIONS.append(Surface.ROTATION_90, 90);//0
+        ORIENTATIONS.append(Surface.ROTATION_180, 180);//270
+        ORIENTATIONS.append(Surface.ROTATION_270, 270);//180
+    }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         setContentView(R.layout.activity_camera);
+
+        mTextureView = (TextureView) findViewById(R.id.cameraView);
+        mTextureView.setSurfaceTextureListener(mSurfaceTextureListener);
+
+        fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                Log.e(TAG, "Shot clicked");
+                takePicture();
+            }
+
+        });
 
         mOrientationListener = new OrientationEventListener(this,
                 SensorManager.SENSOR_DELAY_NORMAL) {
             @Override
             public void onOrientationChanged(int orientation) {
-                if(!buttonChanging){
-                    if(orientation < 290 && orientation > 250 && buttonRotation != 2){
+                orientamento = orientation;
+                if (!buttonChanging) {
+                    if (orientation < 290 && orientation > 250 && buttonRotation != 2) {
                         buttonLeft();
-                    }else if(orientation < 110 && orientation > 70 && buttonRotation != 3){
+                    } else if (orientation < 110 && orientation > 70 && buttonRotation != 3) {
                         buttonRight();
-                    }else if(orientation < 20 || orientation > 340 && buttonRotation != 1){
+                    } else if (orientation < 20 || orientation > 340 && buttonRotation != 1) {
                         buttonUp();
                     }
                 }
@@ -94,174 +160,315 @@ public class ActivityCameraView extends AppCompatActivity {
             mOrientationListener.disable();
         }
 
-        fabBack = (FloatingActionButton)findViewById(R.id.fabBack);
-        fabBack.setOnClickListener(new View.OnClickListener(){
+        fabBack = (FloatingActionButton) findViewById(R.id.fabBack);
+        fabBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 onBackPressed();
             }
         });
 
-        fabFlash = (FloatingActionButton)findViewById(R.id.fabFlash);
-        fabFlash.setOnClickListener(new View.OnClickListener(){
+        fabFlash = (FloatingActionButton) findViewById(R.id.fabFlash);
+        fabFlash.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                toggleFlash();
             }
         });
-
-        fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if(mCamera!=null){
-                    mCamera.takePicture(null, null, mPicture);
-                }
-            }
-
-        });
-
-        new cameraInitTask().execute();
 
     }
 
-    private void initCamera(Camera cam){
-        mCamera = cam;
-
-        if (mCamera == null) {
-            Log.w(data.getInstance().getTAG(), "Impossibile aprire la fotocamera");
+    protected void takePicture() {
+        Log.e(TAG, "takePicture");
+        if (null == mCameraDevice) {
+            Log.e(TAG, "mCameraDevice is null, return");
             return;
         }
 
-        Log.v(data.getInstance().getTAG(), "Camera OK");
+        CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
+        try {
+            CameraCharacteristics characteristics = manager.getCameraCharacteristics(mCameraDevice.getId());
 
-        Camera.Parameters params = mCamera.getParameters();
-        final List<String> focusModes = params.getSupportedFocusModes();
-        if (focusModes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
-            params = mCamera.getParameters();
-            params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
-            Log.v(data.getInstance().getTAG(), "Auto Focus OK");
-        }
-
-        photoHeight = 0;
-        photoWidth = 0;
-        float base = (16f / 9f);
-        for (Camera.Size size : params.getSupportedPictureSizes()) {
-            float format = ((float) size.width / (float) size.height);
-            if (format == base) {
-                Log.v(data.getInstance().getTAG(), "possible photo size: " + size.width + "X" + size.height + " [" + (format == base ? "16:9" : "4:3") + "]");
-                if (Math.abs(size.width - 4128) < Math.abs(photoWidth - 4128)) {
-                    photoWidth = size.width;
-                    photoHeight = size.height;
-                }
+            Size[] jpegSizes = null;
+            if (characteristics != null) {
+                jpegSizes = characteristics
+                        .get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
+                        .getOutputSizes(ImageFormat.JPEG);
             }
-        }
+            int width = 640;
+            int height = 480;
+            if (jpegSizes != null && 0 < jpegSizes.length) {
+                width = jpegSizes[0].getWidth();
+                height = jpegSizes[0].getHeight();
+            }
 
-        params.setPictureSize(photoWidth, photoHeight);
-        params.setPreviewSize(1280, 720);
+            ImageReader reader = ImageReader.newInstance(width, height, ImageFormat.JPEG, 1);
+            List<Surface> outputSurfaces = new ArrayList<Surface>(2);
+            outputSurfaces.add(reader.getSurface());
+            outputSurfaces.add(new Surface(mTextureView.getSurfaceTexture()));
 
-        mCamera.setParameters(params);
-        Log.v(data.getInstance().getTAG(), "Photo size: " + mCamera.getParameters().getPictureSize().width + "X" + mCamera.getParameters().getPictureSize().height);
+            final CaptureRequest.Builder captureBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
+            captureBuilder.addTarget(reader.getSurface());
+            captureBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
 
-        setCameraDisplayOrientation(0, 0, mCamera);
+            // Orientation
+            int rotation = getWindowManager().getDefaultDisplay().getRotation();
+            captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS.get(rotation));
 
-        mPreview = new CameraPreview(mCamera, getApplicationContext());
-        previewFrame = (RelativeLayout) findViewById(R.id.cameraPreview);
-        previewFrame.addView(mPreview);
+            final File file = new File(Environment.getExternalStorageDirectory() + "/DCIM", "pic.jpg");
 
-        previewFrame.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
+            ImageReader.OnImageAvailableListener readerListener = new ImageReader.OnImageAvailableListener() {
 
-                if (mCamera != null) {
-                    mCamera.cancelAutoFocus();
-                    Rect focusRect = calculateFocusArea(event.getX(), event.getY());
+                @Override
+                public void onImageAvailable(ImageReader reader) {
 
-                    Camera.Parameters parameters = mCamera.getParameters();
-                    if (parameters.getFocusMode() != Camera.Parameters.FOCUS_MODE_AUTO) {
-                        parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
+                    Image image = null;
+                    try {
+                        image = reader.acquireLatestImage();
+                        ByteBuffer buffer = image.getPlanes()[0].getBuffer();
+                        byte[] bytes = new byte[buffer.capacity()];
+                        buffer.get(bytes);
+                        save(bytes);
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } finally {
+                        if (image != null) {
+                            image.close();
+                        }
                     }
-                    if (parameters.getMaxNumFocusAreas() > 0) {
-                        List<Camera.Area> mylist = new ArrayList<Camera.Area>();
-                        mylist.add(new Camera.Area(focusRect, 1000));
-                        parameters.setFocusAreas(mylist);
+                }
+
+                private void save(byte[] bytes) throws IOException {
+                    OutputStream output = null;
+                    try {
+                        output = new FileOutputStream(file);
+                        output.write(bytes);
+                    } finally {
+                        if (null != output) {
+                            output.close();
+                        }
                     }
+                }
+
+            };
+
+            HandlerThread thread = new HandlerThread("CameraPicture");
+            thread.start();
+            final Handler backgroudHandler = new Handler(thread.getLooper());
+            reader.setOnImageAvailableListener(readerListener, backgroudHandler);
+
+            final CameraCaptureSession.CaptureCallback captureListener = new CameraCaptureSession.CaptureCallback() {
+
+                @Override
+                public void onCaptureCompleted(CameraCaptureSession session,
+                                               CaptureRequest request, TotalCaptureResult result) {
+
+                    super.onCaptureCompleted(session, request, result);
+                    startPreview();
+                }
+
+            };
+
+            mCameraDevice.createCaptureSession(outputSurfaces, new CameraCaptureSession.StateCallback() {
+
+                @Override
+                public void onConfigured(CameraCaptureSession session) {
 
                     try {
-                        mCamera.cancelAutoFocus();
-                        mCamera.setParameters(parameters);
-                        mCamera.startPreview();
-                        mCamera.autoFocus(new Camera.AutoFocusCallback() {
-                            @Override
-                            public void onAutoFocus(boolean success, Camera camera) {
-                                if (camera.getParameters().getFocusMode() != Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE) {
-                                    Camera.Parameters parameters = camera.getParameters();
-                                    parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
-                                    if (parameters.getMaxNumFocusAreas() > 0) {
-                                        parameters.setFocusAreas(null);
-                                    }
-                                    camera.setParameters(parameters);
-                                    camera.startPreview();
-                                }
-                            }
-                        });
+                        session.capture(captureBuilder.build(), captureListener, backgroudHandler);
                     } catch (Exception e) {
+
                         e.printStackTrace();
                     }
                 }
-                return true;
-            }
-        });
+
+                @Override
+                public void onConfigureFailed(CameraCaptureSession session) {
+
+                }
+            }, backgroudHandler);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.e(TAG, "onResume");
+    }
+
+    private void openCamera() {
+
+        CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
+        Log.e(TAG, "openCamera E");
+        try {
+            String cameraId = manager.getCameraIdList()[0];
+            CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraId);
+            StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+            mPreviewSize = map.getOutputSizes(SurfaceTexture.class)[0];
+
+            manager.openCamera(cameraId, mStateCallback, null);//controllo fatto in precedenza quindi non necessario qui(ma continua a visualizzare errore)
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        Log.e(TAG, "openCamera X");
+    }
+
+    private TextureView.SurfaceTextureListener mSurfaceTextureListener = new TextureView.SurfaceTextureListener(){
+
+        @Override
+        public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
+            Log.e(TAG, "onSurfaceTextureAvailable, width="+width+",height="+height);
+            openCamera();
+        }
+
+        @Override
+        public void onSurfaceTextureSizeChanged(SurfaceTexture surface,
+                                                int width, int height) {
+            Log.e(TAG, "onSurfaceTextureSizeChanged");
+        }
+
+        @Override
+        public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
+            return false;
+        }
+
+        @Override
+        public void onSurfaceTextureUpdated(SurfaceTexture surface) {
+            //Log.e(TAG, "onSurfaceTextureUpdated");
+        }
+
+    };
+
+    private CameraDevice.StateCallback mStateCallback = new CameraDevice.StateCallback() {
+
+        @Override
+        public void onOpened(CameraDevice camera) {
+
+            Log.e(TAG, "onOpened");
+            mCameraDevice = camera;
+            startPreview();
+        }
+
+        @Override
+        public void onDisconnected(CameraDevice camera) {
+
+            Log.e(TAG, "onDisconnected");
+        }
+
+        @Override
+        public void onError(CameraDevice camera, int error) {
+
+            Log.e(TAG, "onError");
+        }
+
+    };
+
+    @Override
+    protected void onPause() {
+
+        Log.e(TAG, "onPause");
+        super.onPause();
+        if (null != mCameraDevice) {
+            mCameraDevice.close();
+            mCameraDevice = null;
+        }
+    }
+
+    protected void startPreview() {
+
+        if(null == mCameraDevice || !mTextureView.isAvailable() || null == mPreviewSize) {
+            Log.e(TAG, "startPreview fail, return");
+            return;
+        }
+
+        SurfaceTexture texture = mTextureView.getSurfaceTexture();
+        if(null == texture) {
+            Log.e(TAG,"texture is null, return");
+            return;
+        }
+
+        texture.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
+        Surface surface = new Surface(texture);
+
+        try {
+            mPreviewBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+        } catch (CameraAccessException e) {
+
+            e.printStackTrace();
+        }
+        mPreviewBuilder.addTarget(surface);
+
+        transformImage(mTextureView.getWidth(), mTextureView.getHeight());
+
+        try {
+            mCameraDevice.createCaptureSession(Arrays.asList(surface), new CameraCaptureSession.StateCallback() {
+
+                @Override
+                public void onConfigured(CameraCaptureSession session) {
+
+                    mPreviewSession = session;
+                    updatePreview();
+                }
+
+                @Override
+                public void onConfigureFailed(CameraCaptureSession session) {
+
+                    Toast.makeText(ActivityCameraView.this, "onConfigureFailed", Toast.LENGTH_LONG).show();
+                }
+            }, null);
+        } catch (CameraAccessException e) {
+
+            e.printStackTrace();
+        }
+    }
+
+    protected void updatePreview() {
+
+        if(null == mCameraDevice) {
+            Log.e(TAG, "updatePreview error, return");
+        }
+
+        mPreviewBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
+        HandlerThread thread = new HandlerThread("CameraPreview");
+        thread.start();
+        Handler backgroundHandler = new Handler(thread.getLooper());
+
+        try {
+            mPreviewSession.setRepeatingRequest(mPreviewBuilder.build(), null, backgroundHandler);
+        } catch (CameraAccessException e) {
+
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void onBackPressed() {
-        findViewById(R.id.outerFrame).setVisibility(View.INVISIBLE);
+        //todo: back pressed
         setResult(Activity.RESULT_CANCELED);
         supportFinishAfterTransition();
-        mCamera.release();
-        mCamera = null;
     }
 
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        if(!hasFocus){
-            flashActivate(false);
-        }
-        super.onWindowFocusChanged(hasFocus);
-    }
-
-    private void startActivityRotate(File imgFile){
+    /*private void startActivityRotate(File imgFile){
+        mCamera.stopPreview();
         Intent intent = new Intent(getApplicationContext(), ActivityRotation.class);
         intent.putExtra("file", imgFile);
-        startActivityForResult(intent, ROTATE_IMAGE);
-    }
+        ActivityOptionsCompat options = ActivityOptionsCompat.
+                makeSceneTransitionAnimation(this, (View)previewFrame, "photo");
+        startActivityForResult(intent, ROTATE_IMAGE, options.toBundle());
+    }*/
 
-    public void onActivityResult(int requestCode, int resultCode, Intent dati) {
-
-        if (resultCode == RESULT_OK) {
-            switch (requestCode) {
-                case ROTATE_IMAGE: {
-                    int result = dati.getExtras().getInt("result");
-                    if(result == 1){
-                        Log.v(data.getInstance().getTAG(), "result 1");
-                        File file = (File)dati.getExtras().get("file");
-                        returnToMain(result, file);
-                    }else{
-                        Log.v(data.getInstance().getTAG(), "result 0");
-                    }
-                }
-            }
-        }
-    }
-
-    private static File getOutputMediaFile(){
+    /*private static File getOutputMediaFile(){
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         File mediaFile = new File(data.getInstance().getDataPath() + "images" + File.separator +
                 "IMG_"+ timeStamp + ".jpg");
 
         return mediaFile;
-    }
+    }*/
 
     private void returnToMain(int result, File file){
         Intent resultData = new Intent();
@@ -271,67 +478,25 @@ public class ActivityCameraView extends AppCompatActivity {
         supportFinishAfterTransition();
     }
 
-    private Rect calculateFocusArea(float x, float y) {
-        int left = clamp(Float.valueOf((x / mPreview.getWidth()) * 2000 - 1000).intValue(), FOCUS_AREA_SIZE);
-        int top = clamp(Float.valueOf((y / mPreview.getHeight()) * 2000 - 1000).intValue(), FOCUS_AREA_SIZE);
-
-        return new Rect(left, top, left + FOCUS_AREA_SIZE, top + FOCUS_AREA_SIZE);
-    }
-
-    private int clamp(int touchCoordinateInCameraReper, int focusAreaSize) {
-        int result;
-        if (Math.abs(touchCoordinateInCameraReper)+focusAreaSize/2>1000){
-            if (touchCoordinateInCameraReper>0){
-                result = 1000 - focusAreaSize/2;
-            } else {
-                result = -1000 + focusAreaSize/2;
-            }
-        } else{
-            result = touchCoordinateInCameraReper - focusAreaSize/2;
+    private void transformImage(int width, int height){
+        if(mPreviewSize == null || mTextureView == null){
+            return;
         }
-        return result;
-    }
-
-    private void setCameraDisplayOrientation(int degrees, int cameraId, Camera camera) {
-        Camera.CameraInfo info = new Camera.CameraInfo();
-        Camera.getCameraInfo(cameraId, info);
-
-        int result;
-        if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
-            result = (info.orientation + degrees) % 360;
-            result = (360 - result) % 360;  // compensate the mirror
-        } else {  // back-facing
-            result = (info.orientation - degrees + 360) % 360;
+        Matrix matrix = new Matrix();
+        int rotation = getWindowManager().getDefaultDisplay().getRotation();
+        Log.v(data.getInstance().getTAG(), "rotation = "+rotation);
+        RectF textureRectF = new RectF(0, 0, width, height);
+        RectF previewRectF = new RectF(0, 0, mPreviewSize.getHeight(), mPreviewSize.getWidth());
+        float centerX = textureRectF.centerX();
+        float centerY = textureRectF.centerY();
+        if(rotation == Surface.ROTATION_0 || rotation == Surface.ROTATION_180){
+            previewRectF.offset(centerX - previewRectF.centerX(), centerY - previewRectF.centerY());
+            matrix.setRectToRect(textureRectF, previewRectF, Matrix.ScaleToFit.FILL);
+            float scale = Math.max((float)width/mPreviewSize.getWidth(), (float)height/mPreviewSize.getHeight());
+            matrix.postScale(scale, scale, centerX, centerY);
+            matrix.postRotate(90*(rotation), centerX, centerY);
         }
-        camera.setDisplayOrientation(result);
-    }
-
-    private void toggleFlash(){
-        if(flashActive){
-            flashActivate(false);
-        }else{
-            flashActivate(true);
-        }
-    }
-
-    private void flashActivate(boolean active){
-        if(getApplicationContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH) && mCamera != null){
-            if(active){
-                Camera.Parameters params = mCamera.getParameters();
-                params.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
-                mCamera.setParameters(params);
-                fabFlash.setImageDrawable(getResources().getDrawable(R.drawable.ic_flash_on_white_24px));
-                flashActive = true;
-            }else{
-                Camera.Parameters params = mCamera.getParameters();
-                params.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
-                mCamera.setParameters(params);
-                fabFlash.setImageDrawable(getResources().getDrawable(R.drawable.ic_flash_off_white_24px));
-                flashActive = false;
-            }
-        }else{
-            Toast.makeText(getApplicationContext(), "Flash not supported", Toast.LENGTH_SHORT);
-        }
+        mTextureView.setTransform(matrix);
     }
 
     private void buttonUp(){
@@ -342,9 +507,10 @@ public class ActivityCameraView extends AppCompatActivity {
         AnimatorSet animSet = new AnimatorSet();
         animSet.playTogether(button1Up, button2Up, button3Up);
         animSet.setDuration(300);
+        animSet.addListener(animatorListener);
         animSet.start();
         buttonRotation = 1;
-        buttonChanging = false;
+
     }
 
     private void buttonLeft(){
@@ -355,9 +521,9 @@ public class ActivityCameraView extends AppCompatActivity {
         AnimatorSet animSet = new AnimatorSet();
         animSet.playTogether(button1Left, button2Left, button3Left);
         animSet.setDuration(300);
+        animSet.addListener(animatorListener);
         animSet.start();
         buttonRotation = 2;
-        buttonChanging = false;
     }
 
     private void buttonRight(){
@@ -368,23 +534,24 @@ public class ActivityCameraView extends AppCompatActivity {
         AnimatorSet animSet = new AnimatorSet();
         animSet.playTogether(button1Right, button2Right, button3Right);
         animSet.setDuration(300);
+        animSet.addListener(animatorListener);
         animSet.start();
         buttonRotation = 3;
-        buttonChanging = false;
     }
 
-    private class cameraInitTask extends AsyncTask<Void, Void, Camera> {
-        protected Camera doInBackground(Void... voids) {
-            Log.v(data.getInstance().getTAG(), "async");
-            return util.getCameraInstance(getApplicationContext());
-        }
-
+    private Animator.AnimatorListener animatorListener  = new Animator.AnimatorListener() {
         @Override
-        protected void onPostExecute(Camera cam) {
-            initCamera(cam);
-            super.onPostExecute(cam);
+        public void onAnimationCancel(Animator animation) {
         }
-    }
+        @Override
+        public void onAnimationStart(Animator animation) {
+        }
+        @Override
+        public void onAnimationEnd(Animator animation) {
+            buttonChanging = false;
+        }
+        @Override
+        public void onAnimationRepeat(Animator animation) {
+        }
+    };
 }
-
-

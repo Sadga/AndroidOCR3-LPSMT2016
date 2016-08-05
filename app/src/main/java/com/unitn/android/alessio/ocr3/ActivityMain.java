@@ -92,6 +92,9 @@ public class ActivityMain extends AppCompatActivity {
                     finish();
                 }
             }
+            if(getApplicationContext().checkSelfPermission("android.permission.CAMERA") == PackageManager.PERMISSION_GRANTED){
+                cameraOk = true;
+            }
         }else{
             if(util.initFiles() != 0){//inizializzazione file base (se esistono ritorna positivo)
                 Toast.makeText(getApplicationContext(), "Impossible to init files, please check permissions", Toast.LENGTH_LONG);
@@ -163,8 +166,8 @@ public class ActivityMain extends AppCompatActivity {
                     if(cameraOk){
                         startActivityCamera();
                     }else{
-                        Toast.makeText(getApplicationContext(), "Camera not initialized please provide permission or restart the app", Toast.LENGTH_SHORT).show();
                         cameraPermission();
+                        //Toast.makeText(getApplicationContext(), "Camera not initialized please provide permission or restart the app", Toast.LENGTH_SHORT).show();
                     }
                 }
             }

@@ -42,7 +42,8 @@
         app:scv_frame_stroke_weight="1dp"
         app:scv_guide_stroke_weight="1dp"
         android:layout_marginTop="?attr/actionBarSize"
-        android:layout_marginBottom="?attr/actionBarSize" />
+        android:layout_marginBottom="?attr/actionBarSize"
+        android:transitionName="photo"/>
 
     <RelativeLayout
         android:layout_width="match_parent"
