@@ -5,8 +5,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -15,7 +15,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.InputType;
@@ -34,6 +33,8 @@ import com.orangegangsters.github.swipyrefreshlayout.library.SwipyRefreshLayoutD
 import org.opencv.android.OpenCVLoader;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -177,44 +178,10 @@ public class ActivityMain extends AppCompatActivity {
                 Intent intent = new Intent();
                 intent.setType("image/*");
                 intent.setAction(Intent.ACTION_GET_CONTENT);
-                startActivityForResult(Intent.createChooser(intent,
-                        "Select Picture"), SELECT_PICTURE);
+                startActivityForResult(Intent.createChooser(intent, "Select Picture"), SELECT_PICTURE);
             }
         });
 
-    }
-
-    //todo REMOVE
-    private void addElement(){
-        tempElem = new OCRElement();
-        tempElem.setImageFile(new File("/storage/emulated/0/ocr/images/IMG_20160530_155223.jpg"));
-        Log.v(data.getInstance().getTAG(), tempElem.getImageFile().getAbsolutePath());
-        tempElem.setDate("Titolo di Prova");
-        tempElem.setText("Normative\n" +
-                "\n" +
-                "Invia feedback; sul dispositivo\n" +
-                "Numero modello\n" +
-                "\n" +
-                "Nexus 5\n" +
-                "\n" +
-                "Veraîpne di Android\n" +
-                "\n" +
-                "M\n" +
-                "\n" +
-                "Versînne; banda di b”ase\n" +
-                "M8974A»2.0…50.226\n" +
-                "\n" +
-                "veîsîpne Kernel\n" +
-                "3.4.0-gb87733d\n" +
-                "android-bui|d@wp ee24.hot.corpgoogle.com #1\n" +
-                "Thu May 21 0511 9113 UTC 2015\n" +
-                "Numero build\n" +
-                "\n" +
-                "Mp2440");
-        tempElem.setProgress(100);
-        tempElem.setConfidence(87);
-        data.getInstance().getOcrElements().add(tempElem);
-        tempElem = null;
     }
 
     @Override
@@ -395,10 +362,12 @@ public class ActivityMain extends AppCompatActivity {
     }
 
     private void startActivityCamera(){
-        Intent intent = new Intent(getApplicationContext(), ActivityCameraView.class);
-        ActivityOptionsCompat options = ActivityOptionsCompat.
-                makeSceneTransitionAnimation(this, (View)fab, "mainFab");
-        startActivityForResult(intent, TAKE_PHOTO, options.toBundle());
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            Uri fileUri = getOutputMediaFileUri();
+            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri );
+            startActivityForResult(takePictureIntent, TAKE_PHOTO);
+        }
     }
 
     public void onActivityResult(int requestCode, int resultCode, Intent dati) {
@@ -407,23 +376,22 @@ public class ActivityMain extends AppCompatActivity {
             switch (requestCode) {
                 case SELECT_PICTURE: {
                     Log.v(data.getInstance().getTAG(), "IN 1");
-                    Uri selectedImageUri = dati.getData();
-                    String path = getPath(selectedImageUri);
-                    Log.v(data.getInstance().getTAG(), "Path = " + path);
-                    if (path != null) {
-                        File imgFile = new File(path);
-                        Log.v(data.getInstance().getTAG(), imgFile.getAbsolutePath());
-                        if (!imgFile.getAbsolutePath().contains("ocr/images")) {
-                            Bitmap image = util.openImageFile(imgFile);
-                            imgFile = util.saveBitmap(image, getOutputMediaFile());//copy image in my folder
-                        } else {
-                            Toast.makeText(getApplicationContext(), "Image in app folder", Toast.LENGTH_SHORT).show();
+                    if (dati != null){
+                        InputStream is = null;
+                        try {
+                            is = getApplicationContext().getContentResolver().openInputStream(dati.getData());
+                        }catch (IOException e){
+                            e.printStackTrace();
                         }
-                        startActivityRotate(imgFile);
-                    } else {
-                        Toast.makeText(getApplicationContext(), "Impossible to read the selected image", Toast.LENGTH_SHORT).show();
+                        if(is != null){
+                            Bitmap image = BitmapFactory.decodeStream(is);
+                            File imgFile = util.saveBitmap(image, getOutputMediaFile());//create image in the app folder
+                            startActivityRotate(imgFile);
+                        } else {
+                            Toast.makeText(getApplicationContext(), "Impossible to read the selected image", Toast.LENGTH_SHORT).show();
+                        }
+                        return;
                     }
-                    return;
                 }
                 case ROTATE_IMAGE: {
                     int result = dati.getExtras().getInt("result");
@@ -437,13 +405,14 @@ public class ActivityMain extends AppCompatActivity {
                     return;
                 }
                 case TAKE_PHOTO: {
-                    int result = dati.getExtras().getInt("result");
-                    if(result == 1){
-                        Log.v(data.getInstance().getTAG(), "result 1");
-                        File file = (File)dati.getExtras().get("file");
-                        addAndParseElement(file);
+                    Log.v(data.getInstance().getTAG(), "result 1");
+                    Uri uri = dati.getData();
+                    if(uri!=null){
+                        File file = new File(uri.getPath());
+                        startActivityRotate(file);
+                        //addAndParseElement(file);
                     }else{
-                        Log.v(data.getInstance().getTAG(), "result 0");
+                        Log.v(data.getInstance().getTAG(), "No photo taken");
                     }
                     return;
                 }
@@ -451,19 +420,8 @@ public class ActivityMain extends AppCompatActivity {
         }
     }
 
-    public String getPath(Uri uri) {
-        if( uri == null ) {
-            return null;
-        }
-        String[] projection = { MediaStore.Images.Media.DATA };
-        Cursor cursor = managedQuery(uri, projection, null, null, null);
-        if( cursor != null ){
-            int column_index = cursor
-                    .getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-            cursor.moveToFirst();
-            return cursor.getString(column_index);
-        }
-        return uri.getPath();
+    private static Uri getOutputMediaFileUri(){
+        return Uri.fromFile(getOutputMediaFile());
     }
 
     private static File getOutputMediaFile(){

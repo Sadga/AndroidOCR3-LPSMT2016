@@ -82,7 +82,9 @@ public class util {
             Utils.bitmapToMat(img, imageMat);
             Imgproc.cvtColor(imageMat, imageMat, Imgproc.COLOR_BGR2GRAY);
             //Imgproc.GaussianBlur(imageMat, imageMat, new Size(3, 3), 0);
-            Imgproc.threshold(imageMat, imageMat, 0, 255, Imgproc.THRESH_OTSU);
+            Imgproc.adaptiveThreshold(imageMat, imageMat, 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY, 51, 15);//51, 15
+            //Imgproc.threshold(imageMat, imageMat, 200, 255, Imgproc.THRESH_OTSU);
+            //Imgproc.threshold(imageMat, imageMat, 0, 255, Imgproc.THRESH_OTSU);
             Utils.matToBitmap(imageMat, result);
             return result;
         }

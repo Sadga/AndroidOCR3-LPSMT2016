@@ -3,11 +3,9 @@ package com.unitn.android.alessio.ocr3;
 import android.os.Bundle;
 import android.os.Message;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 
 /**
  * Created by alessio on 02/05/16.
@@ -15,8 +13,8 @@ import android.widget.ImageView;
 public class FragmentImage extends Fragment {
 
     private OCRElement ocrElement;
-    private ImageView imageV;
-    private int imageVisualized = 0;
+    /*private ImageView imageV;
+    private int imageVisualized = 0;*/
 
     public FragmentImage() {
     }
@@ -40,7 +38,7 @@ public class FragmentImage extends Fragment {
             }
         }).start();
 
-        imageV = (ImageView)rootView.findViewById(R.id.imageView);
+        /*imageV = (ImageView)rootView.findViewById(R.id.imageView);
         imageV.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
@@ -57,7 +55,7 @@ public class FragmentImage extends Fragment {
                 data.getInstance().getUiHandler().sendMessage(msg);
                 return true;
             }
-        });
+        });*/
 
         return rootView;
     }
