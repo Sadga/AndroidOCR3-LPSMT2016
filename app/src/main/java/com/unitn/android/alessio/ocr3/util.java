@@ -20,8 +20,10 @@ import android.hardware.Camera;
 import android.util.Log;
 
 import org.opencv.android.Utils;
+import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.photo.Photo;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -72,7 +74,10 @@ public class util {
     }
 
 
-    public static Bitmap optimizeImage(Bitmap img) {
+    public static Bitmap optimizeImage(Bitmap img, boolean deNoise) {
+
+        deNoise = true;//todo remove!!
+
         if (!data.getInstance().isUsingOpenCV()) {
             Log.v(data.getInstance().getTAG(), "OPENCV OPEN FAILED");
             return convertGS(img);
@@ -81,8 +86,21 @@ public class util {
             Mat imageMat = new Mat();
             Utils.bitmapToMat(img, imageMat);
             Imgproc.cvtColor(imageMat, imageMat, Imgproc.COLOR_BGR2GRAY);
+
             //Imgproc.GaussianBlur(imageMat, imageMat, new Size(3, 3), 0);
             Imgproc.adaptiveThreshold(imageMat, imageMat, 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY, 51, 15);//51, 15
+
+            if(deNoise){
+                Log.v(data.getInstance().getTAG(), "Start Denoise");
+                long startTime = System.currentTimeMillis();
+                Photo.fastNlMeansDenoising(imageMat, imageMat, 7, 7, 21);//7, 21
+                long stopTime = System.currentTimeMillis();
+                long elapsedTime = stopTime - startTime;
+                Log.v(data.getInstance().getTAG(), "Finish Denoise ("+(elapsedTime/1000)+"s)");
+            }
+
+            Core.addWeighted(imageMat, 0.8, imageMat, 0.2, 1, imageMat);
+
             //Imgproc.threshold(imageMat, imageMat, 200, 255, Imgproc.THRESH_OTSU);
             //Imgproc.threshold(imageMat, imageMat, 0, 255, Imgproc.THRESH_OTSU);
             Utils.matToBitmap(imageMat, result);

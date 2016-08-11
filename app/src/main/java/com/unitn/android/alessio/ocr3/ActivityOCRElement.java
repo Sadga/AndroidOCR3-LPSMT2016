@@ -50,7 +50,7 @@ public class ActivityOCRElement extends AppCompatActivity {
             public void handleMessage(Message msg) {
                 if(((String)msg.obj).compareTo("SetImage") == 0){
                     final ImageView image = (ImageView)findViewById(R.id.imageView);
-                    image.setImageBitmap(util.resizeBmp(util.optimizeImage(ocrElement.getImageFullRes()),ocrElement.getImageFullRes().getWidth()/2, ocrElement.getImageFullRes().getHeight()/2));
+                    image.setImageBitmap(util.resizeBmp(util.optimizeImage(ocrElement.getImageFullRes(), false),ocrElement.getImageFullRes().getWidth()/2, ocrElement.getImageFullRes().getHeight()/2));
                     mAttacher = new PhotoViewAttacher(image);
                 }else if(((String)msg.obj).compareTo("updateMAttacher") == 0){
                     mAttacher.update();
