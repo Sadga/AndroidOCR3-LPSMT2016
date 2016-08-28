@@ -2,7 +2,6 @@ package com.unitn.android.alessio.ocr3;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
@@ -21,9 +20,6 @@ public class ActivitySettings extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_settings);
-
-        Toolbar toolbar = (Toolbar) findViewById(R.id.settingsToolbar);
-        setSupportActionBar(toolbar);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
@@ -71,6 +67,7 @@ public class ActivitySettings extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         finish();
+        overridePendingTransition(R.anim.pull_in_left, R.anim.push_out_right);
         super.onBackPressed();
     }
 }

@@ -12,8 +12,6 @@ import com.googlecode.tesseract.android.TessBaseAPI;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Created by alessio on 28/04/16.
@@ -26,7 +24,7 @@ public class ServiceParser extends IntentService {
     private Message msg;
     private String testo1,testo2;
     private int conf1, conf2;
-    private int progr1, progr2;
+    private int progr1 = 100, progr2 = 100;
     private final int THREAD1 = 1;
     private final int THREAD2 = 2;
 
@@ -41,7 +39,18 @@ public class ServiceParser extends IntentService {
 
         msg = data.getInstance().getUiHandler().obtainMessage();
 
+        data.getInstance().getOcrElements().get(index).setText("Optimizing Image");
+        Message msg = data.getInstance().getUiHandler().obtainMessage();
+        msg.obj = "Refresh";
+        data.getInstance().getUiHandler().sendMessage(msg);
+
         image = util.optimizeImage(data.getInstance().getOcrElements().get(index).getImageFullRes(), true);
+
+        data.getInstance().getOcrElements().get(index).setText("Finding Text");
+        msg = data.getInstance().getUiHandler().obtainMessage();
+        msg.obj = "Refresh";
+        data.getInstance().getUiHandler().sendMessage(msg);
+
         int height = image.getHeight()/2;
         boolean LineNotOk = true;
         while(LineNotOk){
@@ -97,7 +106,7 @@ public class ServiceParser extends IntentService {
         thread2.start();
     }
 
-    private String cleanString(String string){
+/*    private String cleanString(String string){
         String str = string;
         Pattern p = Pattern.compile("[\n]+");
         Matcher m = p.matcher(str);
@@ -106,14 +115,14 @@ public class ServiceParser extends IntentService {
         m = p.matcher(str);
         //str = m.replaceAll(" ");
         return str;
-    }
+    }*/
 
     private void finish(){
         finished++;
         Log.v(data.getInstance().getTAG(), "finito uno");
         if(finished == 2){
             Log.v(data.getInstance().getTAG(), "finiti Entrambi");
-            data.getInstance().getOcrElements().get(index).setText(cleanString(testo1+testo2));
+            data.getInstance().getOcrElements().get(index).setText(testo1+testo2);
             data.getInstance().getOcrElements().get(index).setConfidence(((conf1>0?conf1:conf2)+(conf2>0?conf2:conf1))/2);
             data.getInstance().getOcrElements().get(index).deleteImageFullRes();
             data.getInstance().getOcrElements().get(index).setDate(new SimpleDateFormat("dd-MM-yyyy").format(new Date()));

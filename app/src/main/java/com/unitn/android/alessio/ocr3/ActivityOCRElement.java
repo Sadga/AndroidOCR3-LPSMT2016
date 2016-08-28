@@ -13,7 +13,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.text.InputType;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -43,6 +42,7 @@ public class ActivityOCRElement extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_ocrelement);
 
         data.getInstance().setUiHandler(new Handler(){
@@ -59,22 +59,28 @@ public class ActivityOCRElement extends AppCompatActivity {
 
         });
 
-        index = getIntent().getExtras().getInt("ocrelement");
-        ocrElement = data.getInstance().getOcrElements().get(index);
+        if(savedInstanceState != null){
+            index = savedInstanceState.getInt("index");
+        }else {
+            index = getIntent().getExtras().getInt("ocrelement");
+        }
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.settingsToolbar);
-        setSupportActionBar(toolbar);
+        ocrElement = data.getInstance().getOcrElements().get(index);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
-        textFr = new FragmentText();
-        textFr.setOcrElement(index);
-        imageFr = new FragmentImage();
-        imageFr.setOcrElement(ocrElement);
-
+        if(savedInstanceState != null){
+            textFr = (FragmentText)getSupportFragmentManager().getFragment(savedInstanceState, "textFr");
+            imageFr = (FragmentImage)getSupportFragmentManager().getFragment(savedInstanceState, "imageFr");
+        }else {
+            textFr = new FragmentText();
+            textFr.setOcrElement(index);
+            imageFr = new FragmentImage();
+            imageFr.setOcrElement(ocrElement);
+        }
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
@@ -82,6 +88,21 @@ public class ActivityOCRElement extends AppCompatActivity {
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
 
+
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        overridePendingTransition(R.anim.pull_in_left, R.anim.push_out_right);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        savedInstanceState.putInt("index", index);
+        getSupportFragmentManager().putFragment(savedInstanceState, "textFr", textFr);
+        getSupportFragmentManager().putFragment(savedInstanceState, "imageFr", imageFr);
+        super.onSaveInstanceState(savedInstanceState);
     }
 
     @Override
@@ -99,6 +120,9 @@ public class ActivityOCRElement extends AppCompatActivity {
                 break;
             case R.id.change_title:
                 changeTitle();
+                break;
+            case R.id.parseString:
+                parseString();
                 break;
 
         }
@@ -145,6 +169,7 @@ public class ActivityOCRElement extends AppCompatActivity {
         intent.putExtra("ocrelement", index);
         startService(intent);
         finish();
+        overridePendingTransition(R.anim.pull_in_left, R.anim.push_out_right);
     }
 
     private void rotateImage(){
@@ -152,8 +177,15 @@ public class ActivityOCRElement extends AppCompatActivity {
         Intent intent = new Intent(getApplicationContext(), ActivityRotation.class);
         intent.putExtra("file", data.getInstance().getOcrElements().get(index).getImageFile());
         startActivityForResult(intent, ROTATE_IMAGE);
+        overridePendingTransition(R.anim.pull_in_right, R.anim.push_out_left);
     }
 
+    private void parseString(){
+        Intent intent = new Intent(getApplicationContext(), ActivityStringParser.class);
+        intent.putExtra("text", data.getInstance().getOcrElements().get(index).getText());
+        startActivity(intent);
+        overridePendingTransition(R.anim.pull_in_right, R.anim.push_out_left);
+    }
 
     private void changeTitle(){
         AlertDialog.Builder builder = new AlertDialog.Builder(this);

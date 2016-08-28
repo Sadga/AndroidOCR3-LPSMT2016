@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.PersistableBundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -75,12 +74,14 @@ public class ActivityRotation extends AppCompatActivity {
                         resultData.putExtra("file", file);
                         setResult(Activity.RESULT_OK, resultData);
                         finish();
+                        overridePendingTransition(R.anim.pull_in_left, R.anim.push_out_right);
                     }
 
                     @Override
                     public void onError() {
                         setResult(Activity.RESULT_CANCELED, resultData);
                         finish();
+                        overridePendingTransition(R.anim.pull_in_left, R.anim.push_out_right);
                     }
                 });
 
@@ -96,25 +97,20 @@ public class ActivityRotation extends AppCompatActivity {
         });
     }
 
-    private void startActivityRotate(File imgFile){
-        Intent intent = new Intent(getApplicationContext(), ActivityRotation.class);
-        intent.putExtra("file", imgFile);
-        startActivityForResult(intent, ROTATE_IMAGE);
-    }
-
     @Override
     public void onBackPressed() {
         Intent resultData = new Intent();
         resultData.putExtra("result", 0);
         setResult(Activity.RESULT_OK, resultData);
         finish();
+        overridePendingTransition(R.anim.pull_in_left, R.anim.push_out_right);
         //super.onBackPressed();
     }
 
     @Override
-    public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
-        outState.putString("file", file.getAbsolutePath());
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        savedInstanceState.putString("file", file.getAbsolutePath());
         file = null;
-        super.onSaveInstanceState(outState, outPersistentState);
+        super.onSaveInstanceState(savedInstanceState);
     }
 }

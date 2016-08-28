@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:fab="http://schemas.android.com/apk/res-auto"
+    tools:context=".ActivityStringParser">
+
+    <com.unitn.android.alessio.ocr3.customCoordinatorLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/gridLayout">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <com.unitn.android.alessio.ocr3.HScroll
+                android:id="@+id/hScrollTop"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:scrollbars="none">
+                <com.unitn.android.alessio.ocr3.customGrid
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/gridTop"
+                    android:paddingBottom="0dp"
+                    android:paddingLeft="5dp"
+                    android:paddingRight="5dp"
+                    android:paddingTop="5dp">
+                </com.unitn.android.alessio.ocr3.customGrid>
+            </com.unitn.android.alessio.ocr3.HScroll>
+
+            <com.unitn.android.alessio.ocr3.VScroll
+                android:layout_height="match_parent"
+                android:layout_width="match_parent"
+                android:id="@+id/vScroll">
+
+
+                <com.unitn.android.alessio.ocr3.HScroll
+                    android:id="@+id/hScroll"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none">
+                    <com.unitn.android.alessio.ocr3.customGrid
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/grid"
+                        android:paddingTop="0dp"
+                        android:paddingLeft="5dp"
+                        android:paddingRight="5dp">
+                    </com.unitn.android.alessio.ocr3.customGrid>
+                </com.unitn.android.alessio.ocr3.HScroll>
+            </com.unitn.android.alessio.ocr3.VScroll>
+
+        </LinearLayout>
+
+
+        <com.github.clans.fab.FloatingActionMenu
+            android:id="@+id/fabMenu"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/fab_margin"
+            android:layout_gravity="bottom|end"
+            app:menu_colorNormal="@color/colorAccent"
+            app:menu_colorPressed="@color/colorAccentPress"
+            >
+
+            <com.github.clans.fab.FloatingActionButton
+                android:id="@+id/newElemFab"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_add_white_24px"
+                fab:fab_size="mini"
+                fab:fab_label="Add new element"
+                app:fab_colorNormal="@color/colorAccent"
+                app:fab_colorPressed="@color/colorAccentPress"/><!--android:layout_margin="@dimen/fab_margin"-->
+
+            <com.github.clans.fab.FloatingActionButton
+                android:id="@+id/discardedFab"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_keyboard_arrow_up_white_24px"
+                fab:fab_size="mini"
+                fab:fab_label="Show discarded elements"
+                app:fab_colorNormal="@color/colorAccent"
+                app:fab_colorPressed="@color/colorAccentPress"/><!--android:layout_margin="@dimen/fab_margin"-->
+
+            <com.github.clans.fab.FloatingActionButton
+                android:id="@+id/exportFab"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_send_white_24px"
+                android:transitionName="mainFab"
+                fab:fab_size="mini"
+                fab:fab_label="Save and Export"
+                app:fab_colorNormal="@color/colorAccent"
+                app:fab_colorPressed="@color/colorAccentPress"/><!--android:layout_margin="@dimen/fab_margin"-->
+
+        </com.github.clans.fab.FloatingActionMenu>
+
+    </com.unitn.android.alessio.ocr3.customCoordinatorLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:id="@+id/discardLayout"
+        android:layout_gravity="bottom"
+        android:foreground="#00ffffff"
+        android:background="#00ffffff"
+        android:layout_height="0dp">
+
+        <ListView
+            android:id="@+id/discardList"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/custom_border_discard"
+            android:paddingTop="2dp"/>
+
+    </FrameLayout>
+
+
+</android.support.design.widget.CoordinatorLayout>

@@ -14,9 +14,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.MediaStore;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.text.InputType;
 import android.util.Log;
 import android.view.Menu;
@@ -27,6 +25,8 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.github.clans.fab.FloatingActionButton;
+import com.github.clans.fab.FloatingActionMenu;
 import com.orangegangsters.github.swipyrefreshlayout.library.SwipyRefreshLayout;
 import com.orangegangsters.github.swipyrefreshlayout.library.SwipyRefreshLayoutDirection;
 
@@ -48,8 +48,8 @@ public class ActivityMain extends AppCompatActivity {
     private customAdapter adapter;
     private static String preference_file_key = "com.unitn.android.alessio.ocr3.PREFERENCES";
     private FloatingActionButton fab, fab2;
+    private FloatingActionMenu fabMenu;
     private OCRElement tempElem;
-    private boolean fabActive = true;
     private boolean cameraOk = false;
     private SwipyRefreshLayout mRefreshLayout;
 
@@ -69,8 +69,6 @@ public class ActivityMain extends AppCompatActivity {
         }
 
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.settingsToolbar);
-        setSupportActionBar(toolbar);
 
         data.getInstance().setAsset(getAssets());
         data.getInstance().setDataPath(Environment.getExternalStorageDirectory().toString() + "/ocr/");
@@ -92,6 +90,9 @@ public class ActivityMain extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(), "Impossible to init files, please check permissions", Toast.LENGTH_LONG);
                     finish();
                 }
+            }
+            if(getApplicationContext().checkSelfPermission("android.permission.CAMERA") == PackageManager.PERMISSION_GRANTED){
+                cameraOk = true;
             }
         }else{
             if(util.initFiles() != 0){//inizializzazione file base (se esistono ritorna positivo)
@@ -125,14 +126,17 @@ public class ActivityMain extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> adapter, View v, int position, long id){
 
+                fabMenu.close(true);
                 OCRElement item = (OCRElement)adapter.getItemAtPosition(position);
 
-                if(item.getDate().compareTo("Text parsing")!=0){
+                if(item.getProgress() == 100){
                     Log.v(data.getInstance().getTAG(), "item: "+item.getDate());
 
                     Intent intent = new Intent(getApplicationContext(), ActivityOCRElement.class);
                     intent.putExtra("ocrelement", position);
                     startActivity(intent);
+                    overridePendingTransition(R.anim.pull_in_right, R.anim.push_out_left);
+
                 }
             }
         });
@@ -156,17 +160,17 @@ public class ActivityMain extends AppCompatActivity {
             }
         });
 
+        fabMenu = (FloatingActionMenu)findViewById(R.id.fabMenu);
+
         fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(fabActive){
-                    if(cameraOk){
-                        startActivityCamera();
-                    }else{
-                        Toast.makeText(getApplicationContext(), "Camera not initialized please provide permission or restart the app", Toast.LENGTH_SHORT).show();
-                        cameraPermission();
-                    }
+                fabMenu.close(true);
+                if(cameraOk){
+                    startActivityCamera();
+                }else{
+                    cameraPermission();
                 }
             }
         });
@@ -175,10 +179,13 @@ public class ActivityMain extends AppCompatActivity {
         fab2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                fabMenu.close(true);
                 Intent intent = new Intent();
                 intent.setType("image/*");
                 intent.setAction(Intent.ACTION_GET_CONTENT);
                 startActivityForResult(Intent.createChooser(intent, "Select Picture"), SELECT_PICTURE);
+                overridePendingTransition(R.anim.pull_in_left, R.anim.push_out_right);
+
             }
         });
 
@@ -187,6 +194,7 @@ public class ActivityMain extends AppCompatActivity {
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         if(!hasFocus){
+            fabMenu.close(true);
             util.saveData(getApplicationContext());
             util.savePrefs();
         }else {
@@ -196,10 +204,11 @@ public class ActivityMain extends AppCompatActivity {
                     @Override
                     public void handleMessage(Message msg) {
                         if(((String)msg.obj).compareTo("Refresh") == 0){
+                            Log.v(data.getInstance().getTAG(), "Refresh");
                             adapter.notifyDataSetChanged();
                         }
                     }
-            });
+                });
             }
         }
         super.onWindowFocusChanged(hasFocus);
@@ -207,20 +216,28 @@ public class ActivityMain extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        util.savePrefs();
-        super.onBackPressed();
+        if(fabMenu.isOpened()){
+            fabMenu.close(true);
+        }else{
+            util.savePrefs();
+            util.saveData(getApplicationContext());
+            super.onBackPressed();
+        }
     }
 
     @Override
     protected void onDestroy() {
+        util.savePrefs();
+        util.saveData(getApplicationContext());
         super.onDestroy();
-        //util.saveData();
     }
 
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
+        util.savePrefs();
+        util.saveData(getApplicationContext());
         super.onSaveInstanceState(savedInstanceState);
-        //util.saveData();
+
     }
 
     @Override
@@ -241,6 +258,8 @@ public class ActivityMain extends AppCompatActivity {
         if (id == R.id.action_settings) {
             Intent setting = new Intent(getApplicationContext(), ActivitySettings.class);
             startActivity(setting);
+            overridePendingTransition(R.anim.pull_in_right, R.anim.push_out_left);
+
             return true;
         }
 
@@ -367,6 +386,7 @@ public class ActivityMain extends AppCompatActivity {
             Uri fileUri = getOutputMediaFileUri();
             takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri );
             startActivityForResult(takePictureIntent, TAKE_PHOTO);
+            overridePendingTransition(R.anim.pull_in_left, R.anim.push_out_right);
         }
     }
 
@@ -387,6 +407,8 @@ public class ActivityMain extends AppCompatActivity {
                             Bitmap image = BitmapFactory.decodeStream(is);
                             File imgFile = util.saveBitmap(image, getOutputMediaFile());//create image in the app folder
                             startActivityRotate(imgFile);
+                            overridePendingTransition(R.anim.pull_in_right, R.anim.push_out_left);
+
                         } else {
                             Toast.makeText(getApplicationContext(), "Impossible to read the selected image", Toast.LENGTH_SHORT).show();
                         }
@@ -436,6 +458,7 @@ public class ActivityMain extends AppCompatActivity {
         Intent intent = new Intent(getApplicationContext(), ActivityRotation.class);
         intent.putExtra("file", imgFile);
         startActivityForResult(intent, ROTATE_IMAGE);
+        overridePendingTransition(R.anim.pull_in_right, R.anim.push_out_left);
     }
 
     private void parseElement(int index){

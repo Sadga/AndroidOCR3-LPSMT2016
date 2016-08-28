@@ -13,19 +13,22 @@ import android.view.ViewGroup;
 public class FragmentImage extends Fragment {
 
     private OCRElement ocrElement;
-    /*private ImageView imageV;
-    private int imageVisualized = 0;*/
 
     public FragmentImage() {
     }
 
-    public void setOcrElement(OCRElement ocrElement) {
-        this.ocrElement = ocrElement;
+    public void setOcrElement(OCRElement ocrElem) {
+        this.ocrElement = ocrElem;
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+        if (savedInstanceState != null) {
+            ocrElement = savedInstanceState.getParcelable("ocrElem");
+        }
+
         View rootView = inflater.inflate(R.layout.fragment_image_page, container, false);
 
         new Thread(new Runnable() {
@@ -38,25 +41,12 @@ public class FragmentImage extends Fragment {
             }
         }).start();
 
-        /*imageV = (ImageView)rootView.findViewById(R.id.imageView);
-        imageV.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                Log.v(data.getInstance().getTAG(),"long click");
-                if(imageVisualized == 0){
-                    imageV.setImageBitmap(util.resizeBmp(ocrElement.getImageFullRes(),1920, 1080));
-                    imageVisualized = 1;
-                }else {
-                    imageV.setImageBitmap(util.resizeBmp(util.optimizeImage(ocrElement.getImageFullRes()),1920, 1080));
-                    imageVisualized = 0;
-                }
-                Message msg = data.getInstance().getUiHandler().obtainMessage();
-                msg.obj = "updateMAttacher";
-                data.getInstance().getUiHandler().sendMessage(msg);
-                return true;
-            }
-        });*/
-
         return rootView;
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelable("ocrElem", ocrElement);
     }
 }

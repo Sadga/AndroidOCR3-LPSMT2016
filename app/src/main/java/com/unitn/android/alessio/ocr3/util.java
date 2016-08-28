@@ -76,7 +76,7 @@ public class util {
 
     public static Bitmap optimizeImage(Bitmap img, boolean deNoise) {
 
-        deNoise = true;//todo remove!!
+        //deNoise = true;//todo remove!!
 
         if (!data.getInstance().isUsingOpenCV()) {
             Log.v(data.getInstance().getTAG(), "OPENCV OPEN FAILED");
@@ -141,7 +141,7 @@ public class util {
     @TargetApi(23)
     public static int initFiles() {
         String DATA_PATH = data.getInstance().getDataPath();
-        String[] paths = new String[]{DATA_PATH, DATA_PATH + "tessdata/", DATA_PATH + "images/"};
+        String[] paths = new String[]{DATA_PATH, DATA_PATH + "tessdata/", DATA_PATH + "images/", DATA_PATH + "csv/"};
 
         for (String path : paths) {
             File dir = new File(path);
@@ -192,6 +192,18 @@ public class util {
         try {
             fos = new FileOutputStream(path);
             bitmapImage.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+            fos.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return path;
+    }
+
+    public static File saveText(String str, File path){
+        FileOutputStream fos = null;
+        try {
+            fos = new FileOutputStream(path);
+            fos.write(str.getBytes());
             fos.close();
         } catch (Exception e) {
             e.printStackTrace();

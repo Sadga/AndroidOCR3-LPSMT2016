@@ -17,4 +17,9 @@
         android:orderInCategory="100"
         android:title="Rescan the image"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/parseString"
+        android:orderInCategory="100"
+        android:title="Parse and export text"
+        app:showAsAction="never" />
 </menu>

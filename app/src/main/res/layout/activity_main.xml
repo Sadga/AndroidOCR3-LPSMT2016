@@ -2,47 +2,48 @@
 <android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:fab="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
     tools:context="com.unitn.android.alessio.ocr3.ActivityMain">
 
-    <android.support.design.widget.AppBarLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/topBar">
+    <include layout="@layout/fragment_content_main"
+        android:layout_height="fill_parent"
+        android:layout_width="fill_parent"/>
 
-        <android.support.v7.widget.Toolbar
-            android:id="@+id/settingsToolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            app:popupTheme="@style/AppTheme.PopupOverlay" />
-
-    </android.support.design.widget.AppBarLayout>
-
-    <include layout="@layout/fragment_content_main" />
-
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab2"
+    <com.github.clans.fab.FloatingActionMenu
+        android:id="@+id/fabMenu"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_marginBottom="@dimen/fab_margin"
-        android:layout_marginEnd="60dp"
-        android:src="@drawable/ic_insert_photo_black_24px"
-        android:elevation="2dp"
-        app:elevation="2dp" />
-
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/fab_margin"
-        android:src="@drawable/ic_photo_camera_white_24px"
-        android:elevation="8dp"
-        app:elevation="8dp"
-        android:transitionName="mainFab"/>
+        android:layout_gravity="bottom|end"
+        app:menu_colorNormal="@color/colorAccent"
+        app:menu_colorPressed="@color/colorAccentPress">
+
+        <com.github.clans.fab.FloatingActionButton
+            android:id="@+id/fab2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_insert_photo_black_24px"
+            fab:fab_size="normal"
+            fab:fab_label="Select photo"
+            app:fab_colorNormal="@color/colorAccent"
+            app:fab_colorPressed="@color/colorAccentPress"/><!--android:layout_margin="@dimen/fab_margin"-->
+
+        <com.github.clans.fab.FloatingActionButton
+            android:id="@+id/fab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_photo_camera_white_24px"
+            android:transitionName="mainFab"
+            fab:fab_size="normal"
+            fab:fab_label="New photo"
+            app:fab_colorNormal="@color/colorAccent"
+            app:fab_colorPressed="@color/colorAccentPress"/><!--android:layout_margin="@dimen/fab_margin"-->
+
+    </com.github.clans.fab.FloatingActionMenu>
+
+
 
 </android.support.design.widget.CoordinatorLayout>

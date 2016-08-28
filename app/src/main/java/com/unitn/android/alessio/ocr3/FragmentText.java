@@ -38,6 +38,12 @@ public class FragmentText extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+        if (savedInstanceState != null) {
+            index = savedInstanceState.getInt("index");
+            ocrElement = data.getInstance().getOcrElements().get(index);
+        }
+
         rootView = inflater.inflate(R.layout.fragment_text_page, container, false);
 
         title = (TextView)rootView.findViewById(R.id.titleTextView);
@@ -69,9 +75,9 @@ public class FragmentText extends Fragment {
                     AnimatorSet first = new AnimatorSet();
                     first.playTogether(rotate1, hide1, hide2);
                     AnimatorSet second = new AnimatorSet();
-                    second.playTogether(show1, rotate2);
+                    second.playTogether(show1, show2, rotate2);
 
-                    animSet.setDuration(250);
+                    animSet.setDuration(150);
                     animSet.playSequentially(first, second);
                     animSet.addListener(new Animator.AnimatorListener() {
                         @Override
@@ -90,7 +96,9 @@ public class FragmentText extends Fragment {
                         public void onAnimationEnd(Animator animation) {
                             textView.setVisibility(View.GONE);
                             viewScroll.setVisibility(View.GONE);
-                            //textView.setAlpha(0);
+                            textEdit.setAlpha(1);
+                            editScroll.setAlpha(1);
+                            textView.setAlpha(0);
                             viewScroll.setAlpha(0);
                             switchEdit.setText("Save Text");
                         }
@@ -99,6 +107,7 @@ public class FragmentText extends Fragment {
                 }else {
                     textView.setText(textEdit.getText().toString());
                     data.getInstance().getOcrElements().get(index).setText(textEdit.getText().toString());
+                    util.saveData(getContext());
 
                     ObjectAnimator rotate1 = ObjectAnimator.ofFloat(editScroll, "rotationY", 0f, -90f);
                     ObjectAnimator hide1 = ObjectAnimator.ofFloat(editScroll, "alpha", 1f, 0f);
@@ -109,11 +118,11 @@ public class FragmentText extends Fragment {
                     AnimatorSet animSet = new AnimatorSet();
 
                     AnimatorSet first = new AnimatorSet();
-                    first.playTogether(rotate1, hide1);
+                    first.playTogether(rotate1, hide1, hide2);
                     AnimatorSet second = new AnimatorSet();
-                    second.playTogether(show1,rotate2);
+                    second.playTogether(show1, show2,rotate2);
 
-                    animSet.setDuration(250);
+                    animSet.setDuration(150);
                     animSet.playSequentially(first, second);
                     animSet.addListener(new Animator.AnimatorListener() {
                         @Override
@@ -132,6 +141,8 @@ public class FragmentText extends Fragment {
                         public void onAnimationEnd(Animator animation) {
                             textEdit.setVisibility(View.GONE);
                             editScroll.setVisibility(View.GONE);
+                            textView.setAlpha(1);
+                            viewScroll.setAlpha(1);
                             textEdit.setAlpha(0);
                             editScroll.setAlpha(0);
                             switchEdit.setText("Edit Text");
@@ -144,4 +155,11 @@ public class FragmentText extends Fragment {
 
         return rootView;
     }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt("index", index);
+    }
+
 }

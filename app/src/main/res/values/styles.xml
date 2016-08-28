@@ -1,27 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-    <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <item name="android:windowActivityTransitions">true</item>
-        <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+    <style name="AppThemeDark" parent="Theme.AppCompat.DayNight.DarkActionBar" >
+        <item name="android:colorAccent">@color/colorAccent</item>
         <item name="colorAccent">@color/colorAccent</item>
-        <item name="android:colorForeground">@color/foreground_material_dark</item>
-        <item name="android:textColorPrimary">@color/abc_secondary_text_material_light</item>
-        <item name="android:colorBackground">@color/background_floating_material_light</item>
-        <item name="android:textColorPrimaryInverse">@color/abc_search_url_text_selected</item>
-        <item name="android:textColorSecondary">@color/abc_secondary_text_material_light</item>
-        <item name="android:textColorSecondaryInverse">@color/abc_search_url_text_selected</item>
+        <item name="android:navigationBarColor">?android:attr/colorPrimaryDark</item>
+        <item name="colorPrimary">@color/primaryMaterialDark</item>
+        <item name="colorPrimaryDark">@color/primaryDarkMaterialDark</item>
     </style>
 
-    <style name="AppTheme.NoActionBar">
-        <item name="windowActionBar">false</item>
-        <item name="windowNoTitle">true</item>
+    <style name="AppThemeDark.NoActionBar" parent="Theme.AppCompat.DayNight.NoActionBar" >
+        <item name="colorPrimary">@color/primaryMaterialDark</item>
+        <item name="colorPrimaryDark">@color/primaryDarkMaterialDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
     </style>
-
-    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
-
-    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
-
 </resources>

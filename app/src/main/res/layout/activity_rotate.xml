@@ -9,8 +9,8 @@
     <ImageView
         android:id="@+id/takenPhoto"
         android:transitionName="preview"
-        android:layout_marginTop="?attr/actionBarSize"
-        android:layout_marginBottom="?attr/actionBarSize"
+        android:layout_marginTop="@dimen/actionBarSize"
+        android:layout_marginBottom="@dimen/actionBarSize"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_alignParentStart="true"
@@ -41,8 +41,8 @@
         app:scv_min_frame_size="50dp"
         app:scv_frame_stroke_weight="1dp"
         app:scv_guide_stroke_weight="1dp"
-        android:layout_marginTop="?attr/actionBarSize"
-        android:layout_marginBottom="?attr/actionBarSize" />
+        android:layout_marginTop="@dimen/actionBarSize"
+        android:layout_marginBottom="@dimen/actionBarSize" />
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -53,9 +53,8 @@
         <android.support.v7.widget.Toolbar
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?attr/colorPrimary"
-            android:theme="?attr/actionBarTheme"
-            android:minHeight="?attr/actionBarSize"
+            android:background="@color/primaryMaterialDark"
+            android:minHeight="@dimen/actionBarSize"
             android:layout_alignParentTop="true"
             android:layout_alignParentStart="true"
             android:id="@+id/toolbar"
@@ -71,8 +70,8 @@
             android:layout_alignParentStart="true"
             android:background="?attr/colorPrimary"
             android:layout_alignParentTop="true"
-            android:minHeight="?attr/actionBarSize"
-            android:minWidth="?attr/actionBarSize"/>
+            android:minHeight="@dimen/actionBarSize"
+            android:minWidth="@dimen/actionBarSize"/>
 
         <ImageButton
             android:src="@drawable/ic_done_white_24px"
@@ -80,8 +79,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="?attr/colorPrimary"
-            android:minHeight="?attr/actionBarSize"
-            android:minWidth="?attr/actionBarSize"
+            android:minHeight="@dimen/actionBarSize"
+            android:minWidth="@dimen/actionBarSize"
             android:layout_alignParentTop="true"
             android:layout_alignParentEnd="true" />
 
@@ -92,7 +91,7 @@
         android:layout_height="wrap_content"
         android:background="?attr/colorPrimary"
         android:theme="?attr/actionBarTheme"
-        android:minHeight="?attr/actionBarSize"
+        android:minHeight="@dimen/actionBarSize"
         android:id="@+id/toolbar2"
         app:contentInsetStart="0dp"
         app:titleMargins="4dp"
@@ -107,8 +106,8 @@
         android:layout_height="wrap_content"
         android:id="@+id/rotateLeft"
         android:layout_gravity="bottom|start"
-        android:minHeight="?attr/actionBarSize"
-        android:minWidth="?attr/actionBarSize"
+        android:minHeight="@dimen/actionBarSize"
+        android:minWidth="@dimen/actionBarSize"
         android:background="?attr/colorPrimary"
         android:layout_alignParentBottom="true"
         android:layout_alignParentStart="true" />
@@ -119,8 +118,8 @@
         android:layout_height="wrap_content"
         android:id="@+id/rotateRight"
         android:layout_gravity="bottom|end"
-        android:minHeight="?attr/actionBarSize"
-        android:minWidth="?attr/actionBarSize"
+        android:minHeight="@dimen/actionBarSize"
+        android:minWidth="@dimen/actionBarSize"
         android:background="?attr/colorPrimary"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true" />
