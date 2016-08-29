@@ -1,6 +1,7 @@
 package com.unitn.android.alessio.ocr3;
 
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
@@ -185,7 +186,6 @@ public class ActivityStringParser extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            // Respond to the action bar's Up/Home button
             case android.R.id.home:
                 fabMenu.close(false);
                 onBackPressed();
@@ -213,6 +213,7 @@ public class ActivityStringParser extends AppCompatActivity {
             hideDiscarded();
             discardedShow = false;
         }else{
+            Log.v(data.getInstance().getTAG(), "Back");
             super.onBackPressed();
             overridePendingTransition(R.anim.pull_in_left, R.anim.push_out_right);
         }
@@ -337,9 +338,9 @@ public class ActivityStringParser extends AppCompatActivity {
         final float scale = getApplicationContext().getResources().getDisplayMetrics().density;
         final int pixels;
         if(getResources().getConfiguration().orientation == ORIENTATION_PORTRAIT){
-            pixels = (int) (250 * scale + 0.5f);
-        }else{
             pixels = (int) (150 * scale + 0.5f);
+        }else{
+            pixels = (int) (100 * scale + 0.5f);
         }
 
         Animation top = new Animation() {
@@ -365,20 +366,15 @@ public class ActivityStringParser extends AppCompatActivity {
 
         topView.startAnimation(top);
         bottomView.startAnimation(bottom);
-
-
-        /*customCoordinatorLayout.MarginLayoutParams p = (customCoordinatorLayout.MarginLayoutParams) topView.getLayoutParams();
-        p.setMargins(p.leftMargin, p.topMargin, p.rightMargin, pixels);
-        topView.requestLayout();*/
     }
 
     private void hideDiscarded(){
         final float scale = getApplicationContext().getResources().getDisplayMetrics().density;
         final int pixels;
         if(getResources().getConfiguration().orientation == ORIENTATION_PORTRAIT){
-            pixels = (int) (250 * scale + 0.5f);
-        }else{
             pixels = (int) (150 * scale + 0.5f);
+        }else{
+            pixels = (int) (100 * scale + 0.5f);
         }
 
         Animation top = new Animation() {
