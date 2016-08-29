@@ -1,7 +1,6 @@
 package com.unitn.android.alessio.ocr3;
 
 import android.content.Intent;
-import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
@@ -188,6 +187,7 @@ public class ActivityStringParser extends AppCompatActivity {
         switch (item.getItemId()) {
             case android.R.id.home:
                 fabMenu.close(false);
+                discardedShow = false;
                 onBackPressed();
                 return true;
             case R.id.tutorial:

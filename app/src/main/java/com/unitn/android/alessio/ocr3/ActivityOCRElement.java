@@ -20,14 +20,12 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
 
 import uk.co.deanwild.materialshowcaseview.MaterialShowcaseSequence;
-import uk.co.deanwild.materialshowcaseview.MaterialShowcaseView;
 import uk.co.deanwild.materialshowcaseview.ShowcaseConfig;
 import uk.co.senab.photoview.PhotoViewAttacher;
 
@@ -68,7 +66,11 @@ public class ActivityOCRElement extends AppCompatActivity {
         if(savedInstanceState != null){
             index = savedInstanceState.getInt("index");
         }else {
-            index = getIntent().getExtras().getInt("ocrelement");
+            if (getIntent().getExtras() == null){
+                finish();
+            }else {
+                index = getIntent().getExtras().getInt("ocrelement");
+            }
         }
 
         ocrElement = data.getInstance().getOcrElements().get(index);

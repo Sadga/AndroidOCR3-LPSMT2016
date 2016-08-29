@@ -1,6 +1,10 @@
 [
     {
-        "outputFile": "C:\\Users\\Alessio\\AndroidStudioProjects\\AndroidOCR3\\openCVLibrary310\\build\\intermediates\\incremental\\mergeDebugAndroidTestResources\\merged.dir\\values\\values.xml",
+        "outputFile": "/home/alessio/AndroidStudioProjects/OCR3/openCVLibrary310/build/intermediates/incremental/mergeDebugAndroidTestResources/merged.dir/values/values.xml",
+        "map": []
+    },
+    {
+        "outputFile": "/home/alessio/AndroidStudioProjects/OCR3/C:\\Users\\Alessio\\AndroidStudioProjects\\AndroidOCR3\\openCVLibrary310\\build\\intermediates\\incremental\\mergeDebugAndroidTestResources\\merged.dir\\values\\values.xml",
         "map": []
     }
 ]
