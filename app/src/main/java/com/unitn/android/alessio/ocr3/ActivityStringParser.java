@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -32,6 +33,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import fr.ganfra.materialspinner.MaterialSpinner;
+import uk.co.deanwild.materialshowcaseview.MaterialShowcaseSequence;
+import uk.co.deanwild.materialshowcaseview.ShowcaseConfig;
 
 import static android.content.res.Configuration.ORIENTATION_PORTRAIT;
 import static android.widget.GridLayout.spec;
@@ -45,11 +48,13 @@ public class ActivityStringParser extends AppCompatActivity {
     private String[] n, name, surname, birth, club;
     private Spinner[] spinners;
     private ArrayList<String> discarded;
-    private FloatingActionButton discardedFab;
+    private FloatingActionButton discardedFab, addElemFab, exportFab;
     private boolean discardedShow = false;
-    customCoordinatorLayout topView;
-    FrameLayout bottomView;
-    FloatingActionMenu fabMenu;
+    private customCoordinatorLayout topView;
+    private FrameLayout bottomView;
+    private FloatingActionMenu fabMenu;
+    private MaterialSpinner tutorialSpinner;
+
 
     private float mx, my;
     private float curX, curY;
@@ -78,7 +83,6 @@ public class ActivityStringParser extends AppCompatActivity {
 
         gridTop = (customGrid)findViewById(R.id.gridTop);
 
-
         ArrayList<String> fields = new ArrayList<>();
         fields.add("N");
         fields.add("Name");
@@ -102,6 +106,11 @@ public class ActivityStringParser extends AppCompatActivity {
             spin.setBackgroundResource(R.drawable.custom_border_spinner);
             spin.setLayoutParams(params);
             spin.setPopupBackgroundDrawable(ContextCompat.getDrawable(getApplicationContext(), R.drawable.popup_background));
+
+            if(i==0){
+                tutorialSpinner = spin;
+            }
+
             spinners[i]=spin;
 
             gridTop.addView(spin);
@@ -115,7 +124,7 @@ public class ActivityStringParser extends AppCompatActivity {
 
         fabMenu = (FloatingActionMenu)findViewById(R.id.fabMenu);
 
-        FloatingActionButton addElemFab = (FloatingActionButton)findViewById(R.id.newElemFab);
+        addElemFab = (FloatingActionButton)findViewById(R.id.newElemFab);
         addElemFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -124,7 +133,7 @@ public class ActivityStringParser extends AppCompatActivity {
             }
         });
 
-        FloatingActionButton exportFab = (FloatingActionButton)findViewById(R.id.exportFab);
+        exportFab = (FloatingActionButton)findViewById(R.id.exportFab);
         exportFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -157,7 +166,6 @@ public class ActivityStringParser extends AppCompatActivity {
             }
         });
 
-
         vScroll = (ScrollView) findViewById(R.id.vScroll);
         hScroll = (HorizontalScrollView) findViewById(R.id.hScroll);
 
@@ -179,21 +187,48 @@ public class ActivityStringParser extends AppCompatActivity {
         switch (item.getItemId()) {
             // Respond to the action bar's Up/Home button
             case android.R.id.home:
-                fabMenu.close(true);
+                fabMenu.close(false);
                 onBackPressed();
+                return true;
+            case R.id.tutorial:
+                showTutorial(true);
                 return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
     @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        util.savePrefs();
+    }
+
+    @Override
     public void onBackPressed() {
         if(fabMenu.isOpened()){
-            fabMenu.close(true);
+            fabMenu.close(false);
+        }else if(discardedShow) {
+            discardedFab.setLabelText("Show discarded elements");
+            discardedFab.setImageDrawable(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_keyboard_arrow_up_white_24px));
+            hideDiscarded();
+            discardedShow = false;
         }else{
             super.onBackPressed();
             overridePendingTransition(R.anim.pull_in_left, R.anim.push_out_right);
         }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        showTutorial();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_parsetext, menu);
+        return true;
     }
 
     private ArrayList<ArrayList<String>> parseText(String text){
@@ -242,6 +277,11 @@ public class ActivityStringParser extends AppCompatActivity {
             }
         }
 
+        int[] dateProb = new int[mediumLength];
+        for (int i = 0; i < mediumLength; i++){
+            dateProb[i] = 0;
+        }
+
         discarded = new ArrayList<String>();
         discarded.add("These elements are discarded, you can insert them manually");
 
@@ -253,12 +293,32 @@ public class ActivityStringParser extends AppCompatActivity {
             if(voices.length == mediumLength){
                 ArrayList<String> voicesAL = new ArrayList<String>(mediumLength);
                 for (int j = 0; j < voices.length; j++){
-                    getDateFromString(voices[j]);
+                    dateProb[j]+=caBeDate(voices[j]);
                     voicesAL.add(voices[j]);
                 }
                 entry.add(voicesAL);
             }else{
                 discarded.add(rows[i]);
+            }
+        }
+
+        int tmpMaxProb = 0;
+        int dateColumn = -1;
+
+        for (int i = 0; i < mediumLength; i++){
+            if(dateProb[i] > entry.size()){
+                if(dateProb[i]>tmpMaxProb){
+                    tmpMaxProb = dateProb[i];
+                    dateColumn = i;
+                }
+            }
+        }
+
+        Log.v(data.getInstance().getTAG(), "Column with date: "+dateColumn);
+
+        if(dateColumn > -1){
+            for (int i = 0; i < entry.size(); i++){
+                entry.get(i).set(dateColumn, getDateFromString(entry.get(i).get(dateColumn)));
             }
         }
 
@@ -459,32 +519,22 @@ public class ActivityStringParser extends AppCompatActivity {
         return lengths;
     }
 
-    /*@Override
-    public boolean dispatchTouchEvent(MotionEvent event) {
-        switch (event.getAction()) {
-
-            case MotionEvent.ACTION_DOWN:
-                mx = event.getX();
-                my = event.getY();
-                break;
-            case MotionEvent.ACTION_MOVE:
-                curX = event.getX();
-                curY = event.getY();
-                vScroll.scrollBy((int) (mx - curX), (int) (my - curY));
-                hScroll.scrollBy((int) (mx - curX), (int) (my - curY));
-                mx = curX;
-                my = curY;
-                break;
-            case MotionEvent.ACTION_UP:
-                curX = event.getX();
-                curY = event.getY();
-                vScroll.scrollBy((int) (mx - curX), (int) (my - curY));
-                hScroll.scrollBy((int) (mx - curX), (int) (my - curY));
-                break;
+    private int caBeDate(String str){//0 = false; 1 = 2 digit number;
+        if(!isNumber(str)){
+            return 0;
+        }if(str.length()<2){
+            return 0;
+        }if(str.length()==2){
+            return 1;
+        }if(str.length() == 3){
+            return 2;
+        }if(str.length() == 4){
+            return 3;
+        }if(str.length()>4){
+            return 6;
         }
-
-        return super.dispatchTouchEvent(event);
-    }*/
+        return 0;
+    }
 
     private boolean isNumber(String str){
         boolean number = true;
@@ -497,13 +547,48 @@ public class ActivityStringParser extends AppCompatActivity {
         return number;
     }
 
-    private int getDateFromString(String str){
-        int year = 2;
-        int date;
-        if (isNumber(str)){
-            date = Integer.parseInt(str);
+    private String getDateFromString(String str){
+        return str.substring(str.length()-2, str.length());
+    }
+
+    private void showTutorial(){
+        showTutorial(false);
+    }
+
+    private void showTutorial(boolean force){
+        if(data.getInstance().isTutorialStringParser() || force){
+
+            fabMenu.open(false);
+
+            ShowcaseConfig config = new ShowcaseConfig();
+            config.setDelay(150); // half second between each showcase view
+
+            MaterialShowcaseSequence sequence = new MaterialShowcaseSequence(this);
+
+            sequence.setConfig(config);
+
+            sequence.addSequenceItem(fabMenu,
+                    "From this menu you can perform various actions", "GOT IT");
+
+            sequence.addSequenceItem(addElemFab,
+                    "you can add a new element in the list", "GOT IT");
+
+            sequence.addSequenceItem(discardedFab,
+                    "you can see the list of discarded elements, those elements cannot be recognized automatically", "GOT IT");
+
+            sequence.addSequenceItem(exportFab,
+                    "and you can save the csv on the device and then share it with various apps", "GOT IT");
+
+            sequence.addSequenceItem(tutorialSpinner,
+                    "At the top of each column you can select the type of data", "GOT IT");
+
+            sequence.addSequenceItem(c.getTutorialText(),
+                    "if you find errors in the data you can change it, just tap on the cell", "GOT IT");
+
+            sequence.start();
+
+            data.getInstance().setTutorialStringParser(false);
         }
-        return year;
     }
 
 }

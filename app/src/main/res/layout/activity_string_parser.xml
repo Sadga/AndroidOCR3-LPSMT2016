@@ -116,7 +116,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@drawable/custom_border_discard"
-            android:paddingTop="2dp"/>
+            android:paddingTop="3dp"/>
 
     </FrameLayout>
 

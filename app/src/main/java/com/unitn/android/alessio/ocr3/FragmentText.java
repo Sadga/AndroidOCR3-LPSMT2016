@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.os.Bundle;
+import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,6 +14,8 @@ import android.widget.EditText;
 import android.widget.ScrollView;
 import android.widget.Switch;
 import android.widget.TextView;
+
+import uk.co.deanwild.materialshowcaseview.MaterialShowcaseView;
 
 /**
  * Created by alessio on 02/05/16.
@@ -150,8 +153,13 @@ public class FragmentText extends Fragment {
                     });
                     animSet.start();
                 }
+
             }
         });
+
+        Message msg = data.getInstance().getUiHandler().obtainMessage();
+        msg.obj = "textStarted";
+        data.getInstance().getUiHandler().sendMessage(msg);
 
         return rootView;
     }

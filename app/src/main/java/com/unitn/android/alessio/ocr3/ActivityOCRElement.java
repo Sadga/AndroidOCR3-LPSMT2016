@@ -20,11 +20,15 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
 
+import uk.co.deanwild.materialshowcaseview.MaterialShowcaseSequence;
+import uk.co.deanwild.materialshowcaseview.MaterialShowcaseView;
+import uk.co.deanwild.materialshowcaseview.ShowcaseConfig;
 import uk.co.senab.photoview.PhotoViewAttacher;
 
 public class ActivityOCRElement extends AppCompatActivity {
@@ -54,6 +58,8 @@ public class ActivityOCRElement extends AppCompatActivity {
                     mAttacher = new PhotoViewAttacher(image);
                 }else if(((String)msg.obj).compareTo("updateMAttacher") == 0){
                     mAttacher.update();
+                }else if(((String)msg.obj).compareTo("textStarted") == 0){
+                    showTutorial();
                 }
             }
 
@@ -114,17 +120,19 @@ public class ActivityOCRElement extends AppCompatActivity {
                 return true;
             case R.id.rescan:
                 reScanImage();
-                break;
+                return true;
             case R.id.image_rotate:
                 rotateImage();
-                break;
+                return true;
             case R.id.change_title:
                 changeTitle();
-                break;
+                return true;
             case R.id.parseString:
                 parseString();
-                break;
-
+                return true;
+            case R.id.tutorial:
+                showTutorial(true);
+                return true;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -133,6 +141,7 @@ public class ActivityOCRElement extends AppCompatActivity {
     public void onWindowFocusChanged(boolean hasFocus) {
         if(!hasFocus){
             ocrElement.deleteImageFullRes();
+            util.savePrefs();
             System.gc();
         }
         super.onWindowFocusChanged(hasFocus);
@@ -249,6 +258,31 @@ public class ActivityOCRElement extends AppCompatActivity {
                     return "Photo";
             }
             return null;
+        }
+    }
+
+    private void showTutorial(){
+        showTutorial(false);
+    }
+
+    private void showTutorial(boolean force){
+        if(data.getInstance().isTutorialOCRElement() || force){
+            ShowcaseConfig config = new ShowcaseConfig();
+            config.setDelay(150); // half second between each showcase view
+
+            MaterialShowcaseSequence sequence = new MaterialShowcaseSequence(this);
+
+            sequence.setConfig(config);
+
+            sequence.addSequenceItem(findViewById(R.id.tabs),
+                    "From here you can change the view from text to image", "GOT IT");
+
+            sequence.addSequenceItem(findViewById(R.id.editText),
+                    "Whith this switch you can edit the text, remember to press it again once finished editing", "GOT IT");
+
+            sequence.start();
+
+            data.getInstance().setTutorialOCRElement(false);
         }
     }
 }

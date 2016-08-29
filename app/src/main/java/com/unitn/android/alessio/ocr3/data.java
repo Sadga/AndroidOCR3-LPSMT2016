@@ -20,6 +20,8 @@ public class data {
     private Handler uiHandler;
     private SharedPreferences sharedPref;
     private boolean usingOpenCV = true;
+    private boolean tutorialMain, tutorialOCRElement, tutorialStringParser;
+
 
     public static data getInstance() {
         return ourInstance;
@@ -61,6 +63,18 @@ public class data {
         this.usingOpenCV = usingOpenCV;
     }
 
+    public void setTutorialMain(boolean tutorialMain) {
+        this.tutorialMain = tutorialMain;
+    }
+
+    public void setTutorialOCRElement(boolean tutorialOCRElement) {
+        this.tutorialOCRElement = tutorialOCRElement;
+    }
+
+    public void setTutorialStringParser(boolean tutorialStringParser) {
+        this.tutorialStringParser = tutorialStringParser;
+    }
+
     public ArrayList<OCRElement> getOcrElements() {
         return ocrElements;
     }
@@ -95,5 +109,17 @@ public class data {
 
     public String getTAG() {
         return TAG;
+    }
+
+    public boolean isTutorialMain() {
+        return tutorialMain;
+    }
+
+    public boolean isTutorialOCRElement() {
+        return tutorialOCRElement;
+    }
+
+    public boolean isTutorialStringParser() {
+        return tutorialStringParser;
     }
 }

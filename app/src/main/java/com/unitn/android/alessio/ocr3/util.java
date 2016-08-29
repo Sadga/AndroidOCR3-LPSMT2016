@@ -39,6 +39,10 @@ import static android.content.Context.MODE_PRIVATE;
  */
 public class util {
     private static String preference_lang = "com.unitn.android.alessio.ocr3.PREFERENCES.lang";
+    private static String prefTutorialMain = "com.unitn.android.alessio.ocr3.PREFERENCES.tutorial.main";
+    private static String prefTutorialElem = "com.unitn.android.alessio.ocr3.PREFERENCES.tutorial.elem";
+    private static String prefTutorialParse = "com.unitn.android.alessio.ocr3.PREFERENCES.tutorial.parse";
+
 
     public static Bitmap resizeBmp(Bitmap img, int width, int height) {
         return Bitmap.createScaledBitmap(img, width, height, true);
@@ -215,12 +219,18 @@ public class util {
         SharedPreferences sharedPref = data.getInstance().getSharedPref();
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putString(preference_lang, data.getInstance().getLanguage());
+        editor.putBoolean(prefTutorialMain, data.getInstance().isTutorialMain());
+        editor.putBoolean(prefTutorialElem, data.getInstance().isTutorialOCRElement());
+        editor.putBoolean(prefTutorialParse, data.getInstance().isTutorialStringParser());
         editor.commit();
     }
 
     public static void restorePrefs(){
         SharedPreferences sharedPref = data.getInstance().getSharedPref();
         data.getInstance().setLanguage(sharedPref.getString(preference_lang, "ita"));
+        data.getInstance().setTutorialMain(sharedPref.getBoolean(prefTutorialMain, true));
+        data.getInstance().setTutorialOCRElement(sharedPref.getBoolean(prefTutorialElem, true));
+        data.getInstance().setTutorialStringParser(sharedPref.getBoolean(prefTutorialParse, true));
         checkDB();
     }
 

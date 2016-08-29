@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.widget.GridLayout;
 import android.widget.TextView;
 
@@ -18,20 +19,39 @@ public class customGrid extends GridLayout{
     private ArrayList<ArrayList<String>> entry;
     private int width, height;
     private TextView[][] textViews;
+    private TextView tutorialText;
 
     public customGrid(Context context, AttributeSet attrs){
         super(context, attrs);
     }
 
+    public TextView getTutorialText() {
+        return tutorialText;
+    }
+
     public ArrayList<ArrayList<String>> getEntry(){//todo remove white lines
         ArrayList<ArrayList<String>> entry = new ArrayList<ArrayList<String>>();
+        int empty;
 
         for (int i=0; i<height; i++) {
             ArrayList<String> entryTmp = new ArrayList<String>();
+            empty = 0;
             for (int j = 0; j < width; j++) {
-                entryTmp.add(textViews[j][i].getText().toString());
+                if(textViews[j][i] != null){
+                    String tmpString = textViews[j][i].getText().toString();
+
+                    if(tmpString != null && !tmpString.equals("")){
+                        entryTmp.add(tmpString);
+                        empty++;
+                    }
+                }
             }
-            entry.add(entryTmp);
+
+            Log.v(data.getInstance().getTAG(), "riga = "+i+" empty = "+empty);
+
+            if(empty==width){
+                entry.add(entryTmp);
+            }
         }
 
         return entry;
@@ -49,6 +69,7 @@ public class customGrid extends GridLayout{
         super.setRowCount(height);
 
         for (int i=0; i<height; i++){
+
             for (int j=0; j<width; j++){
                 MaterialEditText text = new MaterialEditText(getContext());
                 text.setHideUnderline(true);
@@ -59,6 +80,11 @@ public class customGrid extends GridLayout{
                 text.setId((10*i)+j);
                 text.setNextFocusForwardId((j+1==entry.get(i).size()?(10*(i+1)):(10*i))+((j+1)%entry.get(i).size()));
                 text.setNextFocusDownId((j+1==entry.get(i).size()?10*(i+1):10*i)+((j+1)%entry.get(i).size()));
+
+                if((i == 0 && j == 0) || (i == 1 && j == 1)){
+                    tutorialText = text;
+                }
+
                 textViews[j][i] = text;
 
                 if(newLine && j==0){

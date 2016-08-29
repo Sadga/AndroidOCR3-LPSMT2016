@@ -39,6 +39,10 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
+import uk.co.deanwild.materialshowcaseview.MaterialShowcaseSequence;
+import uk.co.deanwild.materialshowcaseview.MaterialShowcaseView;
+import uk.co.deanwild.materialshowcaseview.ShowcaseConfig;
+
 
 public class ActivityMain extends AppCompatActivity {
 
@@ -52,6 +56,7 @@ public class ActivityMain extends AppCompatActivity {
     private OCRElement tempElem;
     private boolean cameraOk = false;
     private SwipyRefreshLayout mRefreshLayout;
+    private ListView listView;
 
 
     @Override @TargetApi(23)
@@ -104,7 +109,7 @@ public class ActivityMain extends AppCompatActivity {
         //ANDROID 6 PERMISSION MANAGEMENT
 
 
-        ListView listView = (ListView)findViewById(R.id.listView);
+        listView = (ListView)findViewById(R.id.listView);
 
         if(savedInstanceState != null){ //TODO: RESTORE DATA SAVED
             //Altre cose da ripristinare savedinstance
@@ -129,7 +134,7 @@ public class ActivityMain extends AppCompatActivity {
                 fabMenu.close(true);
                 OCRElement item = (OCRElement)adapter.getItemAtPosition(position);
 
-                if(item.getProgress() == 100){
+                if(item.getProgress() == 100 && !item.getDate().equals("Text parsing")){
                     Log.v(data.getInstance().getTAG(), "item: "+item.getDate());
 
                     Intent intent = new Intent(getApplicationContext(), ActivityOCRElement.class);
@@ -192,9 +197,15 @@ public class ActivityMain extends AppCompatActivity {
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        showTutorial();
+    }
+
+    @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         if(!hasFocus){
-            fabMenu.close(true);
+            fabMenu.close(false);
             util.saveData(getApplicationContext());
             util.savePrefs();
         }else {
@@ -249,18 +260,16 @@ public class ActivityMain extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
+        switch (item.getItemId()) {
+            case R.id.action_settings:
+                Intent setting = new Intent(getApplicationContext(), ActivitySettings.class);
+                startActivity(setting);
+                overridePendingTransition(R.anim.pull_in_right, R.anim.push_out_left);
+                return true;
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            Intent setting = new Intent(getApplicationContext(), ActivitySettings.class);
-            startActivity(setting);
-            overridePendingTransition(R.anim.pull_in_right, R.anim.push_out_left);
-
-            return true;
+            case R.id.tutorial:
+                showTutorial(true);
+                return true;
         }
 
         return super.onOptionsItemSelected(item);
@@ -392,6 +401,8 @@ public class ActivityMain extends AppCompatActivity {
 
     public void onActivityResult(int requestCode, int resultCode, Intent dati) {
 
+        super.onActivityResult(requestCode, resultCode, dati);
+
         if (resultCode == RESULT_OK) {
             switch (requestCode) {
                 case SELECT_PICTURE: {
@@ -428,12 +439,13 @@ public class ActivityMain extends AppCompatActivity {
                 }
                 case TAKE_PHOTO: {
                     Log.v(data.getInstance().getTAG(), "result 1");
-                    Uri uri = dati.getData();
-                    if(uri!=null){
+                    if(dati!=null && dati.getData()!=null){
+                        Uri uri = dati.getData();
                         File file = new File(uri.getPath());
                         startActivityRotate(file);
                         //addAndParseElement(file);
                     }else{
+                        Toast.makeText(getApplicationContext(), "Cannot retrieve the photo", Toast.LENGTH_LONG).show();
                         Log.v(data.getInstance().getTAG(), "No photo taken");
                     }
                     return;
@@ -481,5 +493,23 @@ public class ActivityMain extends AppCompatActivity {
         adapter.notifyDataSetChanged();
 
         parseElement(data.getInstance().getOcrElements().size()-1);
+    }
+
+    private void showTutorial(){
+        showTutorial(false);
+    }
+
+    private void showTutorial(boolean force){
+        if(data.getInstance().isTutorialMain() || force) {
+            fabMenu.open(false);
+
+            new MaterialShowcaseView.Builder(this)
+                    .setTarget(fabMenu)
+                    .setDismissText("GOT IT")
+                    .setContentText("With those buttons you can add the images to scan")
+                    .show();
+
+            data.getInstance().setTutorialMain(false);
+        }
     }
 }

@@ -22,4 +22,9 @@
         android:orderInCategory="100"
         android:title="Parse and export text"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/tutorial"
+        android:orderInCategory="100"
+        android:title="Show tutorial"
+        app:showAsAction="never" />
 </menu>
