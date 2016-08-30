@@ -258,7 +258,44 @@ public class ActivityStringParser extends AppCompatActivity {
 
         String[] rows = str.split("[\n]");
 
-        int[] lengths = new int[15];//massimo numero di campi ammessi
+        for(int i = 0; i < rows.length; i++){
+            p = Pattern.compile("(\\|)(DE||de||De||" +
+                    "Da||DA||da||" +
+                    "DAI||dai||Dai||" +
+                    "La||LA||la||" +
+                    "D||d||" +
+                    "DELLA||Della||della||" +
+                    "DALLE||Dalle||dalle||" +
+                    "DELLE||Delle||delle)(\\|)");
+            m = p.matcher(rows[i]);
+            while(m.find()){
+                Log.v(data.getInstance().getTAG(), "Match on: "+rows[i]);
+                String tmp = "";
+                for (int k = 0; k < rows[i].length(); k++){
+                    if(k == m.end()-1
+                            ){
+                        tmp+=" ";
+                    }else{
+                        tmp+=rows[i].charAt(k);
+                    }
+                }
+                rows[i] = tmp;
+            }
+            /*for (int j = 0; j < m.groupCount(); j++){
+                Log.v(data.getInstance().getTAG(), "Match on: "+rows[i]+" Found: "+m.group(j));
+                String tmp = "";
+                for (int k = 0; k < rows[i].length(); k++){
+                    if(k == m.end(j)){
+                        tmp+=" ";
+                    }else{
+                        tmp+=rows[i].charAt(k);
+                    }
+                }
+                rows[i] = tmp;
+            }*/
+        }
+
+        int[] lengths = new int[15];//massimo numero di campi ammessi 15
 
         for(int i = 0; i < 15; i++) {
             lengths[i]=0;

@@ -35,7 +35,7 @@
 
         <activity
             android:name=".ActivityOCRElement"
-            android:label="OCR3"
+            android:label="@string/app_name"
             android:parentActivityName=".ActivityMain"
             android:theme="@style/AppThemeDark">
             <meta-data
@@ -45,13 +45,13 @@
 
         <activity
             android:name=".ActivityRotation"
-            android:label="OCR3"
+            android:label="@string/app_name"
             android:theme="@style/AppThemeDark.NoActionBar">
         </activity>
 
         <activity
             android:name=".ActivityStringParser"
-            android:label="OCR3"
+            android:label="@string/app_name"
             android:parentActivityName=".ActivityOCRElement"
             android:theme="@style/AppThemeDark">
             <meta-data
